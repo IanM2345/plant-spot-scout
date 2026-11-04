@@ -7,4 +7,9 @@
     <string name="settings_coming_soon">Settings will live here.</string>
     <string name="spot_photo_placeholder">Spot photo placeholder</string>
     <string name="light_band">Light: %1$s</string>
+    <string name="add_spot">Add spot</string>
+    <string name="spot_name">Spot name</string>
+    <string name="room">Room</string>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
 </resources>
