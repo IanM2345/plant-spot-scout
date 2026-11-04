@@ -5,4 +5,6 @@
     <string name="tab_settings">Settings</string>
     <string name="no_spot">No spot yet</string>
     <string name="settings_coming_soon">Settings will live here.</string>
+    <string name="spot_photo_placeholder">Spot photo placeholder</string>
+    <string name="light_band">Light: %1$s</string>
 </resources>

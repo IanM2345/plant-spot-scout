@@ -1,18 +1,111 @@
 package com.iangachoki.plantspotscout.ui.spots
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.iangachoki.plantspotscout.R
+import com.iangachoki.plantspotscout.model.LightBand
+import com.iangachoki.plantspotscout.model.Spot
 import com.iangachoki.plantspotscout.ui.SpotsViewModel
+import com.iangachoki.plantspotscout.ui.theme.PlantSpotScoutTheme
 
 @Composable
 fun MySpotsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(stringResource(R.string.tab_my_spots))
+    val spots by viewModel.spots.collectAsState()
+    SpotList(spots = spots, modifier = modifier)
+}
+
+@Composable
+private fun SpotList(spots: List<Spot>, modifier: Modifier = Modifier) {
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(spots, key = { it.id }) { spot ->
+            SpotCard(spot)
+        }
+    }
+}
+
+@Composable
+fun SpotCard(spot: Spot, modifier: Modifier = Modifier) {
+    Card(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SpotPhotoPlaceholder()
+            Column(
+                modifier = Modifier
+                    .padding(start = 16.dp)
+                    .weight(1f)
+            ) {
+                Text(spot.name, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    spot.room,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                AssistChip(
+                    onClick = {},
+                    label = { Text(stringResource(R.string.light_band, spot.lightBand.label)) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SpotPhotoPlaceholder() {
+    Box(
+        modifier = Modifier
+            .size(72.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.secondaryContainer),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_photo),
+            contentDescription = stringResource(R.string.spot_photo_placeholder),
+            tint = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SpotListPreview() {
+    PlantSpotScoutTheme {
+        SpotList(
+            listOf(
+                Spot(1, "Window sill", "Kitchen", LightBand.DIRECT),
+                Spot(2, "Bookshelf corner", "Living room", LightBand.MEDIUM)
+            )
+        )
     }
 }
