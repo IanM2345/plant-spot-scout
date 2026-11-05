@@ -3,12 +3,14 @@ package com.iangachoki.plantspotscout.ui.spots
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -20,6 +22,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -41,6 +46,7 @@ fun SpotDetailScreen(
     val spots by viewModel.spots.collectAsState()
     val plants by viewModel.plants.collectAsState()
     val spot = spots.firstOrNull { it.id == spotId }
+    var showEditDialog by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -68,14 +74,35 @@ fun SpotDetailScreen(
             SpotDetails(
                 spot = spot,
                 plants = plants.filter { it.currentSpotId == spot.id },
+                onEdit = { showEditDialog = true },
                 modifier = Modifier.padding(innerPadding)
             )
         }
     }
+
+    if (showEditDialog && spot != null) {
+        AddSpotDialog(
+            rooms = viewModel.rooms,
+            title = stringResource(R.string.edit_spot),
+            confirmLabel = stringResource(R.string.save),
+            initialName = spot.name,
+            initialRoom = spot.room,
+            onDismiss = { showEditDialog = false },
+            onConfirm = { name, room ->
+                viewModel.updateSpot(spot.id, name, room)
+                showEditDialog = false
+            }
+        )
+    }
 }
 
 @Composable
-private fun SpotDetails(spot: Spot, plants: List<Plant>, modifier: Modifier = Modifier) {
+private fun SpotDetails(
+    spot: Spot,
+    plants: List<Plant>,
+    onEdit: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -94,6 +121,11 @@ private fun SpotDetails(spot: Spot, plants: List<Plant>, modifier: Modifier = Mo
             onClick = {},
             label = { Text(stringResource(R.string.light_band, spot.lightBand.label)) }
         )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = onEdit) {
+                Text(stringResource(R.string.edit))
+            }
+        }
 
         HorizontalDivider()
 

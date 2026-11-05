@@ -26,21 +26,27 @@ import com.iangachoki.plantspotscout.R
 
 /**
  * Asks for a spot name and a room. [onConfirm] is only called with a non-blank name.
+ *
+ * Used for adding a new spot and, with [initialName] and [initialRoom] filled in, for editing one.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddSpotDialog(
     rooms: List<String>,
     onDismiss: () -> Unit,
-    onConfirm: (name: String, room: String) -> Unit
+    onConfirm: (name: String, room: String) -> Unit,
+    title: String = stringResource(R.string.add_spot),
+    confirmLabel: String = stringResource(R.string.add),
+    initialName: String = "",
+    initialRoom: String = rooms.first()
 ) {
-    var name by rememberSaveable { mutableStateOf("") }
-    var room by rememberSaveable { mutableStateOf(rooms.first()) }
+    var name by rememberSaveable { mutableStateOf(initialName) }
+    var room by rememberSaveable { mutableStateOf(initialRoom) }
     var roomMenuOpen by rememberSaveable { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.add_spot)) },
+        title = { Text(title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
@@ -87,7 +93,7 @@ fun AddSpotDialog(
                 onClick = { onConfirm(name.trim(), room) },
                 enabled = name.isNotBlank()
             ) {
-                Text(stringResource(R.string.add))
+                Text(confirmLabel)
             }
         },
         dismissButton = {

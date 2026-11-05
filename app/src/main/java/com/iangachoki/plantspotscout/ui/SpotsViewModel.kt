@@ -23,6 +23,11 @@ class SpotsViewModel(
         repository.addSpot(name, room, lightBand)
     }
 
+    fun updateSpot(id: Long, name: String, room: String) {
+        if (name.isBlank()) return
+        repository.updateSpot(id, name, room)
+    }
+
     fun spotName(spotId: Long?): String? =
         spots.value.firstOrNull { it.id == spotId }?.name
 }

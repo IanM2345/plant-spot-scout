@@ -52,4 +52,10 @@ object PlantRepository {
         _spots.update { it + spot }
         return spot
     }
+
+    fun updateSpot(id: Long, name: String, room: String) {
+        _spots.update { spots ->
+            spots.map { if (it.id == id) it.copy(name = name.trim(), room = room) else it }
+        }
+    }
 }
