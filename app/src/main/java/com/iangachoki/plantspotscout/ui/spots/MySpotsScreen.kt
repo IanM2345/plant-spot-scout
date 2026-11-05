@@ -122,9 +122,9 @@ fun SpotCard(spot: Spot, onClick: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SpotPhotoPlaceholder() {
+internal fun SpotPhotoPlaceholder(modifier: Modifier = Modifier) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(72.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.secondaryContainer),
