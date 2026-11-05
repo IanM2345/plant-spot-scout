@@ -11,11 +11,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -41,6 +43,7 @@ fun SpotDetailScreen(
     spotId: Long,
     viewModel: SpotsViewModel,
     onBack: () -> Unit,
+    onDeleted: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val spots by viewModel.spots.collectAsState()
@@ -75,6 +78,10 @@ fun SpotDetailScreen(
                 spot = spot,
                 plants = plants.filter { it.currentSpotId == spot.id },
                 onEdit = { showEditDialog = true },
+                onDelete = {
+                    viewModel.deleteSpot(spot.id)
+                    onDeleted()
+                },
                 modifier = Modifier.padding(innerPadding)
             )
         }
@@ -101,6 +108,7 @@ private fun SpotDetails(
     spot: Spot,
     plants: List<Plant>,
     onEdit: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -124,6 +132,12 @@ private fun SpotDetails(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = onEdit) {
                 Text(stringResource(R.string.edit))
+            }
+            OutlinedButton(
+                onClick = onDelete,
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text(stringResource(R.string.delete))
             }
         }
 

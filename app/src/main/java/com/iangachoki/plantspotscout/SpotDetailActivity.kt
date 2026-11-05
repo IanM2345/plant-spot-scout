@@ -32,7 +32,8 @@ class SpotDetailActivity : ComponentActivity() {
                 SpotDetailScreen(
                     spotId = spotId,
                     viewModel = viewModel,
-                    onBack = ::finish
+                    onBack = ::finish,
+                    onDeleted = ::finish
                 )
             }
         }

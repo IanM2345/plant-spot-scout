@@ -28,6 +28,10 @@ class SpotsViewModel(
         repository.updateSpot(id, name, room)
     }
 
+    fun deleteSpot(id: Long) {
+        repository.deleteSpot(id)
+    }
+
     fun spotName(spotId: Long?): String? =
         spots.value.firstOrNull { it.id == spotId }?.name
 }

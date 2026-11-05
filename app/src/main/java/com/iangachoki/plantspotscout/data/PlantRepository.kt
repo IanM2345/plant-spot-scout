@@ -58,4 +58,12 @@ object PlantRepository {
             spots.map { if (it.id == id) it.copy(name = name.trim(), room = room) else it }
         }
     }
+
+    /** Removes the spot. Plants that were in it are left without a spot. */
+    fun deleteSpot(id: Long) {
+        _spots.update { spots -> spots.filterNot { it.id == id } }
+        _plants.update { plants ->
+            plants.map { if (it.currentSpotId == id) it.copy(currentSpotId = null) else it }
+        }
+    }
 }
