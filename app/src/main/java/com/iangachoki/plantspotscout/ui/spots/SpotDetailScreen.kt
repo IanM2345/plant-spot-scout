@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -20,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -50,6 +52,7 @@ fun SpotDetailScreen(
     val plants by viewModel.plants.collectAsState()
     val spot = spots.firstOrNull { it.id == spotId }
     var showEditDialog by rememberSaveable { mutableStateOf(false) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -78,10 +81,7 @@ fun SpotDetailScreen(
                 spot = spot,
                 plants = plants.filter { it.currentSpotId == spot.id },
                 onEdit = { showEditDialog = true },
-                onDelete = {
-                    viewModel.deleteSpot(spot.id)
-                    onDeleted()
-                },
+                onDelete = { showDeleteDialog = true },
                 modifier = Modifier.padding(innerPadding)
             )
         }
@@ -98,6 +98,31 @@ fun SpotDetailScreen(
             onConfirm = { name, room ->
                 viewModel.updateSpot(spot.id, name, room)
                 showEditDialog = false
+            }
+        )
+    }
+
+    if (showDeleteDialog && spot != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(stringResource(R.string.delete_spot_title)) },
+            text = { Text(stringResource(R.string.delete_spot_message, spot.name)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        viewModel.deleteSpot(spot.id)
+                        onDeleted()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(stringResource(R.string.delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
             }
         )
     }

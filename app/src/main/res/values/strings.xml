@@ -21,4 +21,6 @@
     <string name="edit_spot">Edit spot</string>
     <string name="save">Save</string>
     <string name="delete">Delete</string>
+    <string name="delete_spot_title">Are you sure?</string>
+    <string name="delete_spot_message">Delete \"%1$s\"? Plants in this spot will be left without a spot.</string>
 </resources>
