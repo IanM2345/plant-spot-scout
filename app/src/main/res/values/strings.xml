@@ -12,4 +12,6 @@
     <string name="room">Room</string>
     <string name="add">Add</string>
     <string name="cancel">Cancel</string>
+    <string name="spot_details">Spot details</string>
+    <string name="back">Back</string>
 </resources>

@@ -28,11 +28,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.iangachoki.plantspotscout.R
+import com.iangachoki.plantspotscout.SpotDetailActivity
 import com.iangachoki.plantspotscout.model.LightBand
 import com.iangachoki.plantspotscout.model.Spot
 import com.iangachoki.plantspotscout.ui.SpotsViewModel
@@ -42,9 +44,15 @@ import com.iangachoki.plantspotscout.ui.theme.PlantSpotScoutTheme
 fun MySpotsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
     val spots by viewModel.spots.collectAsState()
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Box(modifier = modifier.fillMaxSize()) {
-        SpotList(spots = spots)
+        SpotList(
+            spots = spots,
+            onSpotClick = { spot ->
+                context.startActivity(SpotDetailActivity.newIntent(context, spot.id))
+            }
+        )
         FloatingActionButton(
             onClick = { showAddDialog = true },
             modifier = Modifier
@@ -68,7 +76,11 @@ fun MySpotsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SpotList(spots: List<Spot>, modifier: Modifier = Modifier) {
+private fun SpotList(
+    spots: List<Spot>,
+    onSpotClick: (Spot) -> Unit,
+    modifier: Modifier = Modifier
+) {
     LazyColumn(
         modifier = modifier,
         // Extra bottom padding so the add button never covers the last card.
@@ -76,14 +88,14 @@ private fun SpotList(spots: List<Spot>, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(spots, key = { it.id }) { spot ->
-            SpotCard(spot)
+            SpotCard(spot, onClick = { onSpotClick(spot) })
         }
     }
 }
 
 @Composable
-fun SpotCard(spot: Spot, modifier: Modifier = Modifier) {
-    Card(modifier = modifier.fillMaxWidth()) {
+fun SpotCard(spot: Spot, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -134,7 +146,8 @@ private fun SpotListPreview() {
             listOf(
                 Spot(1, "Window sill", "Kitchen", LightBand.DIRECT),
                 Spot(2, "Bookshelf corner", "Living room", LightBand.MEDIUM)
-            )
+            ),
+            onSpotClick = {}
         )
     }
 }
