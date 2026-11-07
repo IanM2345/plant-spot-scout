@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
@@ -53,6 +54,7 @@ private enum class Phase { READY, MEASURING, DONE }
 fun MeasureSessionScreen(
     spotName: String,
     onCancel: () -> Unit,
+    onUseReading: (lux: Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var phase by rememberSaveable { mutableStateOf(Phase.READY) }
@@ -148,14 +150,22 @@ fun MeasureSessionScreen(
                 )
             }
 
-            Button(
-                onClick = { phase = Phase.MEASURING },
-                enabled = phase != Phase.MEASURING,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    stringResource(if (phase == Phase.DONE) R.string.measure_again else R.string.start_measuring)
-                )
+            val result = average
+            if (phase == Phase.DONE && result != null) {
+                Button(onClick = { onUseReading(result) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.use_reading))
+                }
+                OutlinedButton(onClick = { phase = Phase.MEASURING }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.measure_again))
+                }
+            } else {
+                Button(
+                    onClick = { phase = Phase.MEASURING },
+                    enabled = phase != Phase.MEASURING,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.start_measuring))
+                }
             }
         }
     }

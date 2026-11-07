@@ -28,6 +28,10 @@ class SpotsViewModel(
         repository.updateSpot(id, name, room)
     }
 
+    fun updateLightBand(id: Long, lightBand: LightBand) {
+        repository.updateLightBand(id, lightBand)
+    }
+
     fun deleteSpot(id: Long) {
         repository.deleteSpot(id)
     }

@@ -59,6 +59,12 @@ object PlantRepository {
         }
     }
 
+    fun updateLightBand(id: Long, lightBand: LightBand) {
+        _spots.update { spots ->
+            spots.map { if (it.id == id) it.copy(lightBand = lightBand) else it }
+        }
+    }
+
     /** Removes the spot. Plants that were in it are left without a spot. */
     fun deleteSpot(id: Long) {
         _spots.update { spots -> spots.filterNot { it.id == id } }
