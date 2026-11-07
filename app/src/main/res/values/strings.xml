@@ -54,5 +54,9 @@
     <string name="settings_about">About</string>
     <string name="about_text">Plant Spot Scout measures the light around your home and helps you pick the best spot for each plant.</string>
     <string name="version">Version %1$s</string>
+    <string name="spot_photo">Spot photo</string>
+    <string name="take_photo">Take photo</string>
+    <string name="retake_photo">Retake photo</string>
+    <string name="no_camera_app">No camera app found</string>
     <string name="delete_spot_message">Delete \"%1$s\"? Plants in this spot will be left without a spot.</string>
 </resources>

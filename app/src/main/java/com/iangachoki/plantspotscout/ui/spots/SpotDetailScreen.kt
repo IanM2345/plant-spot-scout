@@ -47,6 +47,7 @@ fun SpotDetailScreen(
     onBack: () -> Unit,
     onDeleted: () -> Unit,
     onMeasure: (Spot) -> Unit,
+    onTakePhoto: (Spot) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val spots by viewModel.spots.collectAsState()
@@ -84,6 +85,7 @@ fun SpotDetailScreen(
                 onEdit = { showEditDialog = true },
                 onDelete = { showDeleteDialog = true },
                 onMeasure = { onMeasure(spot) },
+                onTakePhoto = { onTakePhoto(spot) },
                 modifier = Modifier.padding(innerPadding)
             )
         }
@@ -137,6 +139,7 @@ private fun SpotDetails(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onMeasure: () -> Unit,
+    onTakePhoto: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -146,7 +149,12 @@ private fun SpotDetails(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        SpotPhotoPlaceholder()
+        SpotPhoto(spot.photoUri, size = 160.dp)
+        OutlinedButton(onClick = onTakePhoto) {
+            Text(
+                stringResource(if (spot.photoUri == null) R.string.take_photo else R.string.retake_photo)
+            )
+        }
         Text(spot.name, style = MaterialTheme.typography.headlineSmall)
         Text(
             spot.room,
