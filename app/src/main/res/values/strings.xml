@@ -25,5 +25,12 @@
     <string name="measure">Measure</string>
     <string name="measure_title">Measure %1$s</string>
     <string name="measure_hint">Hold the phone where the plant would sit.</string>
+    <string name="lux_value">%1$d lx</string>
+    <string name="seconds_left">%1$d s left</string>
+    <string name="average_reading">Average of %1$d readings</string>
+    <string name="random_readings">Random readings</string>
+    <string name="slider_lux">Slider: %1$d lx</string>
+    <string name="start_measuring">Start measuring</string>
+    <string name="measure_again">Measure again</string>
     <string name="delete_spot_message">Delete \"%1$s\"? Plants in this spot will be left without a spot.</string>
 </resources>
