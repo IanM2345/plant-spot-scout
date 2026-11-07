@@ -1,17 +1,113 @@
 package com.iangachoki.plantspotscout.ui.settings
 
-import androidx.compose.foundation.layout.Box
+import android.widget.Toast
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.iangachoki.plantspotscout.R
+import com.iangachoki.plantspotscout.ui.SpotsViewModel
 
 @Composable
-fun SettingsScreen(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(stringResource(R.string.settings_coming_soon))
+fun SettingsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
+    val demoMode by viewModel.demoMode.collectAsState()
+    var showClearDialog by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val versionName = remember(context) {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty()
     }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        SectionHeader(stringResource(R.string.settings_measuring))
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.demo_mode)) },
+            supportingContent = { Text(stringResource(R.string.demo_mode_summary)) },
+            trailingContent = {
+                Switch(checked = demoMode, onCheckedChange = viewModel::setDemoMode)
+            },
+            modifier = Modifier.clickable { viewModel.setDemoMode(!demoMode) }
+        )
+
+        HorizontalDivider()
+        SectionHeader(stringResource(R.string.settings_data))
+        ListItem(
+            headlineContent = {
+                Text(stringResource(R.string.clear_data), color = MaterialTheme.colorScheme.error)
+            },
+            supportingContent = { Text(stringResource(R.string.clear_data_summary)) },
+            modifier = Modifier.clickable { showClearDialog = true }
+        )
+
+        HorizontalDivider()
+        SectionHeader(stringResource(R.string.settings_about))
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.app_name)) },
+            supportingContent = {
+                Column {
+                    Text(stringResource(R.string.version, versionName))
+                    Text(stringResource(R.string.about_text), modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+        )
+    }
+
+    if (showClearDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearDialog = false },
+            title = { Text(stringResource(R.string.clear_data_title)) },
+            text = { Text(stringResource(R.string.clear_data_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showClearDialog = false
+                        viewModel.clearAllData()
+                        Toast.makeText(context, R.string.data_cleared, Toast.LENGTH_SHORT).show()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(stringResource(R.string.clear))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun SectionHeader(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp)
+    )
 }

@@ -46,6 +46,21 @@ object PlantRepository {
     )
     val plants: StateFlow<List<Plant>> = _plants.asStateFlow()
 
+    private val _demoMode = MutableStateFlow(true)
+
+    /** When on, Measure Session starts with simulated readings instead of the slider. */
+    val demoMode: StateFlow<Boolean> = _demoMode.asStateFlow()
+
+    fun setDemoMode(enabled: Boolean) {
+        _demoMode.value = enabled
+    }
+
+    /** Removes every spot and plant. */
+    fun clearAll() {
+        _plants.value = emptyList()
+        _spots.value = emptyList()
+    }
+
     fun addSpot(name: String, room: String, lightBand: LightBand = LightBand.MEDIUM): Spot {
         val nextId = (_spots.value.maxOfOrNull { it.id } ?: 0L) + 1
         val spot = Spot(nextId, name.trim(), room, lightBand)

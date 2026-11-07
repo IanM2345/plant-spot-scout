@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.iangachoki.plantspotscout.data.PlantRepository
 import com.iangachoki.plantspotscout.ui.measure.MeasureSessionScreen
 import com.iangachoki.plantspotscout.ui.theme.PlantSpotScoutTheme
 
@@ -23,6 +24,7 @@ class MeasureSessionActivity : ComponentActivity() {
             PlantSpotScoutTheme {
                 MeasureSessionScreen(
                     spotName = spotName,
+                    startWithRandom = PlantRepository.demoMode.value,
                     onCancel = ::finish,
                     onUseReading = { lux ->
                         setResult(RESULT_OK, Intent().putExtra(EXTRA_LUX, lux))

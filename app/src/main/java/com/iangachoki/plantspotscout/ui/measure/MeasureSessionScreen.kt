@@ -53,13 +53,14 @@ private enum class Phase { READY, MEASURING, DONE }
 @Composable
 fun MeasureSessionScreen(
     spotName: String,
+    startWithRandom: Boolean,
     onCancel: () -> Unit,
     onUseReading: (lux: Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var phase by rememberSaveable { mutableStateOf(Phase.READY) }
     var secondsLeft by rememberSaveable { mutableIntStateOf(SESSION_SECONDS) }
-    var useRandom by rememberSaveable { mutableStateOf(true) }
+    var useRandom by rememberSaveable { mutableStateOf(startWithRandom) }
     var sliderLux by rememberSaveable { mutableFloatStateOf(1_000f) }
     val readings = remember { mutableStateListOf<Float>() }
     // Saved separately so the final value survives rotation.

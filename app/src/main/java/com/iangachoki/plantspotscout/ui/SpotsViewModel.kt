@@ -18,6 +18,15 @@ class SpotsViewModel(
     val spots: StateFlow<List<Spot>> = repository.spots
     val plants: StateFlow<List<Plant>> = repository.plants
     val rooms: List<String> = repository.rooms
+    val demoMode: StateFlow<Boolean> = repository.demoMode
+
+    fun setDemoMode(enabled: Boolean) {
+        repository.setDemoMode(enabled)
+    }
+
+    fun clearAllData() {
+        repository.clearAll()
+    }
 
     fun addSpot(name: String, room: String, lightBand: LightBand = LightBand.MEDIUM) {
         if (name.isBlank()) return
