@@ -37,5 +37,10 @@
     <string name="no_plants">No plants yet.</string>
     <string name="plant_needs">%1$s · needs %2$s light</string>
     <string name="plant_in_spot">In %1$s, %2$s</string>
+    <string name="where_should_this_go">Where should this go?</string>
+    <string name="ranking_title">Best spots for %1$s</string>
+    <string name="ranking_subtitle">Needs %1$s light. Best match first.</string>
+    <string name="no_spots_to_rank">Add a spot first.</string>
+    <string name="close">Close</string>
     <string name="delete_spot_message">Delete \"%1$s\"? Plants in this spot will be left without a spot.</string>
 </resources>

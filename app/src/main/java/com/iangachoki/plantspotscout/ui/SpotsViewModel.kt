@@ -5,6 +5,7 @@ import com.iangachoki.plantspotscout.data.PlantRepository
 import com.iangachoki.plantspotscout.model.LightBand
 import com.iangachoki.plantspotscout.model.Plant
 import com.iangachoki.plantspotscout.model.Spot
+import com.iangachoki.plantspotscout.model.rankSpots
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -35,6 +36,9 @@ class SpotsViewModel(
     fun deleteSpot(id: Long) {
         repository.deleteSpot(id)
     }
+
+    /** Spots ordered from best to worst for [plant]. */
+    fun rankSpotsFor(plant: Plant): List<Spot> = rankSpots(plant.type.lightNeeds, spots.value)
 
     fun spotName(spotId: Long?): String? =
         spots.value.firstOrNull { it.id == spotId }?.name

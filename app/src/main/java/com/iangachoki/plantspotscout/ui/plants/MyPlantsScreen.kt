@@ -19,9 +19,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,11 +47,32 @@ fun MyPlantsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
     val plants by viewModel.plants.collectAsState()
     val spots by viewModel.spots.collectAsState()
 
-    PlantList(plants = plants, spots = spots, modifier = modifier)
+    var rankingFor by rememberSaveable { mutableStateOf<Long?>(null) }
+
+    PlantList(
+        plants = plants,
+        spots = spots,
+        onWhereShouldThisGo = { rankingFor = it.id },
+        modifier = modifier
+    )
+
+    val plant = plants.firstOrNull { it.id == rankingFor }
+    if (plant != null) {
+        SpotRankingDialog(
+            plant = plant,
+            rankedSpots = viewModel.rankSpotsFor(plant),
+            onDismiss = { rankingFor = null }
+        )
+    }
 }
 
 @Composable
-private fun PlantList(plants: List<Plant>, spots: List<Spot>, modifier: Modifier = Modifier) {
+private fun PlantList(
+    plants: List<Plant>,
+    spots: List<Spot>,
+    onWhereShouldThisGo: (Plant) -> Unit,
+    modifier: Modifier = Modifier
+) {
     if (plants.isEmpty()) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(stringResource(R.string.no_plants))
@@ -60,49 +85,70 @@ private fun PlantList(plants: List<Plant>, spots: List<Spot>, modifier: Modifier
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(plants, key = { it.id }) { plant ->
-            PlantCard(plant = plant, spot = spots.firstOrNull { it.id == plant.currentSpotId })
+            PlantCard(
+                plant = plant,
+                spot = spots.firstOrNull { it.id == plant.currentSpotId },
+                onWhereShouldThisGo = { onWhereShouldThisGo(plant) }
+            )
         }
     }
 }
 
 @Composable
-private fun PlantCard(plant: Plant, spot: Spot?, modifier: Modifier = Modifier) {
+private fun PlantCard(
+    plant: Plant,
+    spot: Spot?,
+    onWhereShouldThisGo: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Card(modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
+        Column {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painterResource(R.drawable.ic_plant),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painterResource(R.drawable.ic_plant),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                        .weight(1f)
+                ) {
+                    Text(plant.nickname, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        stringResource(R.string.plant_needs, plant.type.name, plant.type.lightNeeds.label),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        spot?.let { stringResource(R.string.plant_in_spot, it.name, it.room) }
+                            ?: stringResource(R.string.no_spot),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    if (spot != null) {
+                        FitChip(LightFit.of(plant.type.lightNeeds, spot.lightBand))
+                    }
+                }
             }
-            Column(
+            Row(
                 modifier = Modifier
-                    .padding(start = 16.dp)
-                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(start = 4.dp, end = 4.dp, bottom = 4.dp),
+                horizontalArrangement = Arrangement.End
             ) {
-                Text(plant.nickname, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    stringResource(R.string.plant_needs, plant.type.name, plant.type.lightNeeds.label),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    spot?.let { stringResource(R.string.plant_in_spot, it.name, it.room) }
-                        ?: stringResource(R.string.no_spot),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                if (spot != null) {
-                    FitChip(LightFit.of(plant.type.lightNeeds, spot.lightBand))
+                TextButton(onClick = onWhereShouldThisGo) {
+                    Text(stringResource(R.string.where_should_this_go))
                 }
             }
         }
@@ -135,7 +181,8 @@ private fun PlantListPreview() {
                 Plant(1, "Spike", PlantType("Aloe vera", LightBand.DIRECT), currentSpotId = 1),
                 Plant(2, "Lily", PlantType("Peace lily", LightBand.LOW))
             ),
-            spots = listOf(spot)
+            spots = listOf(spot),
+            onWhereShouldThisGo = {}
         )
     }
 }
