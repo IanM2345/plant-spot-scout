@@ -29,6 +29,11 @@
             android:parentActivityName=".MainActivity"
             android:theme="@style/Theme.PlantSpotScout"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".MeasureSessionActivity"
+            android:exported="false"
+            android:parentActivityName=".SpotDetailActivity"
+            android:theme="@style/Theme.PlantSpotScout" />
     </application>
 
 </manifest>

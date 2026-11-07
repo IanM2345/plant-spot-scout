@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import com.iangachoki.plantspotscout.ui.SpotsViewModel
 import com.iangachoki.plantspotscout.ui.spots.SpotDetailScreen
@@ -17,6 +18,15 @@ import com.iangachoki.plantspotscout.ui.theme.PlantSpotScoutTheme
 class SpotDetailActivity : ComponentActivity() {
 
     private val viewModel: SpotsViewModel by viewModels()
+
+    // Registered before onCreate finishes, as the Activity Result API requires.
+    private val measureLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            // The reading is handled once Measure Session returns one.
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +43,10 @@ class SpotDetailActivity : ComponentActivity() {
                     spotId = spotId,
                     viewModel = viewModel,
                     onBack = ::finish,
-                    onDeleted = ::finish
+                    onDeleted = ::finish,
+                    onMeasure = { spot ->
+                        measureLauncher.launch(MeasureSessionActivity.newIntent(this, spot.name))
+                    }
                 )
             }
         }

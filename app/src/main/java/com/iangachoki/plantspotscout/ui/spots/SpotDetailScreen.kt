@@ -46,6 +46,7 @@ fun SpotDetailScreen(
     viewModel: SpotsViewModel,
     onBack: () -> Unit,
     onDeleted: () -> Unit,
+    onMeasure: (Spot) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val spots by viewModel.spots.collectAsState()
@@ -82,6 +83,7 @@ fun SpotDetailScreen(
                 plants = plants.filter { it.currentSpotId == spot.id },
                 onEdit = { showEditDialog = true },
                 onDelete = { showDeleteDialog = true },
+                onMeasure = { onMeasure(spot) },
                 modifier = Modifier.padding(innerPadding)
             )
         }
@@ -134,6 +136,7 @@ private fun SpotDetails(
     plants: List<Plant>,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    onMeasure: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -154,8 +157,11 @@ private fun SpotDetails(
             onClick = {},
             label = { Text(stringResource(R.string.light_band, spot.lightBand.label)) }
         )
+        Button(onClick = onMeasure, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.measure))
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = onEdit) {
+            OutlinedButton(onClick = onEdit) {
                 Text(stringResource(R.string.edit))
             }
             OutlinedButton(
