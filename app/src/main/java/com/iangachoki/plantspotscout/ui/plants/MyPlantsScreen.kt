@@ -1,5 +1,7 @@
 package com.iangachoki.plantspotscout.ui.plants
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +19,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,11 +52,21 @@ fun MyPlantsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
     val spots by viewModel.spots.collectAsState()
 
     var rankingFor by rememberSaveable { mutableStateOf<Long?>(null) }
+    val context = LocalContext.current
 
     PlantList(
         plants = plants,
         spots = spots,
         onWhereShouldThisGo = { rankingFor = it.id },
+        onShare = { plant ->
+            val text = bestSpotMessage(context, plant, viewModel.rankSpotsFor(plant).firstOrNull())
+            val send = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.share_subject, plant.nickname))
+                putExtra(Intent.EXTRA_TEXT, text)
+            }
+            context.startActivity(Intent.createChooser(send, context.getString(R.string.share_plant)))
+        },
         modifier = modifier
     )
 
@@ -71,6 +85,7 @@ private fun PlantList(
     plants: List<Plant>,
     spots: List<Spot>,
     onWhereShouldThisGo: (Plant) -> Unit,
+    onShare: (Plant) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (plants.isEmpty()) {
@@ -88,7 +103,8 @@ private fun PlantList(
             PlantCard(
                 plant = plant,
                 spot = spots.firstOrNull { it.id == plant.currentSpotId },
-                onWhereShouldThisGo = { onWhereShouldThisGo(plant) }
+                onWhereShouldThisGo = { onWhereShouldThisGo(plant) },
+                onShare = { onShare(plant) }
             )
         }
     }
@@ -99,6 +115,7 @@ private fun PlantCard(
     plant: Plant,
     spot: Spot?,
     onWhereShouldThisGo: () -> Unit,
+    onShare: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(modifier = modifier.fillMaxWidth()) {
@@ -145,8 +162,15 @@ private fun PlantCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 4.dp, end = 4.dp, bottom = 4.dp),
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                IconButton(onClick = onShare) {
+                    Icon(
+                        painterResource(R.drawable.ic_share),
+                        contentDescription = stringResource(R.string.share_plant)
+                    )
+                }
                 TextButton(onClick = onWhereShouldThisGo) {
                     Text(stringResource(R.string.where_should_this_go))
                 }
@@ -154,6 +178,21 @@ private fun PlantCard(
         }
     }
 }
+
+/** Text for sharing where [plant] does best. [bestSpot] is null when there are no spots. */
+private fun bestSpotMessage(context: Context, plant: Plant, bestSpot: Spot?): String =
+    if (bestSpot == null) {
+        context.getString(R.string.share_no_spot, plant.nickname, plant.type.name, plant.type.lightNeeds.label)
+    } else {
+        context.getString(
+            R.string.share_best_spot,
+            plant.nickname,
+            plant.type.name,
+            bestSpot.name,
+            bestSpot.room,
+            bestSpot.lightBand.label
+        )
+    }
 
 @Composable
 private fun FitChip(fit: LightFit) {
@@ -182,7 +221,8 @@ private fun PlantListPreview() {
                 Plant(2, "Lily", PlantType("Peace lily", LightBand.LOW))
             ),
             spots = listOf(spot),
-            onWhereShouldThisGo = {}
+            onWhereShouldThisGo = {},
+            onShare = {}
         )
     }
 }

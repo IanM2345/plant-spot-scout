@@ -58,5 +58,9 @@
     <string name="take_photo">Take photo</string>
     <string name="retake_photo">Retake photo</string>
     <string name="no_camera_app">No camera app found</string>
+    <string name="share_plant">Share</string>
+    <string name="share_subject">Best spot for %1$s</string>
+    <string name="share_best_spot">%1$s (%2$s) does best in %3$s, %4$s. That spot gets %5$s light. Found with Plant Spot Scout.</string>
+    <string name="share_no_spot">%1$s (%2$s) needs %3$s light. Found with Plant Spot Scout.</string>
     <string name="delete_spot_message">Delete \"%1$s\"? Plants in this spot will be left without a spot.</string>
 </resources>
