@@ -34,5 +34,8 @@
     <string name="measure_again">Measure again</string>
     <string name="use_reading">Use this reading</string>
     <string name="light_band_updated">Light band set to %1$s</string>
+    <string name="no_plants">No plants yet.</string>
+    <string name="plant_needs">%1$s · needs %2$s light</string>
+    <string name="plant_in_spot">In %1$s, %2$s</string>
     <string name="delete_spot_message">Delete \"%1$s\"? Plants in this spot will be left without a spot.</string>
 </resources>
