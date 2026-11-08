@@ -65,4 +65,11 @@
     <string name="care_page">Care tips</string>
     <string name="no_browser">No browser found</string>
     <string name="delete_spot_message">Delete \"%1$s\"? Plants in this spot will be left without a spot.</string>
+    <string name="delete_spot">Delete spot</string>
+    <string name="demo_readings">Demo readings</string>
+    <string name="slider">Slider</string>
+    <string name="my_spots_subtitle">Places around your home and the light they get.</string>
+    <string name="my_plants_subtitle">Each plant and how well its spot suits it.</string>
+    <string name="gauge_min">0</string>
+    <string name="gauge_max">20,000 lx</string>
 </resources>

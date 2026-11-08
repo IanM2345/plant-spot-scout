@@ -1,5 +1,6 @@
 package com.iangachoki.plantspotscout.ui.spots
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,9 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,6 +35,9 @@ import com.iangachoki.plantspotscout.SpotDetailActivity
 import com.iangachoki.plantspotscout.model.LightBand
 import com.iangachoki.plantspotscout.model.Spot
 import com.iangachoki.plantspotscout.ui.SpotsViewModel
+import com.iangachoki.plantspotscout.ui.components.EmptyState
+import com.iangachoki.plantspotscout.ui.components.LightBandChip
+import com.iangachoki.plantspotscout.ui.components.ScreenHeader
 import com.iangachoki.plantspotscout.ui.theme.PlantSpotScoutTheme
 
 @Composable
@@ -49,14 +53,16 @@ fun MySpotsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
                 context.startActivity(SpotDetailActivity.newIntent(context, spot.id))
             }
         )
-        FloatingActionButton(
+        ExtendedFloatingActionButton(
             onClick = { showAddDialog = true },
+            icon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null) },
+            text = { Text(stringResource(R.string.add_spot)) },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
-        ) {
-            Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.add_spot))
-        }
+        )
     }
 
     if (showAddDialog) {
@@ -77,21 +83,36 @@ private fun SpotList(
     onSpotClick: (Spot) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(
-        modifier = modifier,
-        // Extra bottom padding so the add button never covers the last card.
-        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 88.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(spots, key = { it.id }) { spot ->
-            SpotCard(spot, onClick = { onSpotClick(spot) })
+    Column(modifier = modifier.fillMaxSize()) {
+        ScreenHeader(
+            title = stringResource(R.string.tab_my_spots),
+            subtitle = stringResource(R.string.my_spots_subtitle),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        if (spots.isEmpty()) {
+            EmptyState(R.drawable.ic_spot, stringResource(R.string.no_spot))
+            return@Column
+        }
+        LazyColumn(
+            // Extra bottom padding so the add button never covers the last card.
+            contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 96.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(spots, key = { it.id }) { spot ->
+                SpotCard(spot, onClick = { onSpotClick(spot) })
+            }
         }
     }
 }
 
 @Composable
 fun SpotCard(spot: Spot, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -100,7 +121,8 @@ fun SpotCard(spot: Spot, onClick: () -> Unit, modifier: Modifier = Modifier) {
             Column(
                 modifier = Modifier
                     .padding(start = 16.dp)
-                    .weight(1f)
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(spot.name, style = MaterialTheme.typography.titleMedium)
                 Text(
@@ -108,10 +130,7 @@ fun SpotCard(spot: Spot, onClick: () -> Unit, modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                AssistChip(
-                    onClick = {},
-                    label = { Text(stringResource(R.string.light_band, spot.lightBand.label)) }
-                )
+                LightBandChip(spot.lightBand, modifier = Modifier.padding(top = 6.dp))
             }
         }
     }

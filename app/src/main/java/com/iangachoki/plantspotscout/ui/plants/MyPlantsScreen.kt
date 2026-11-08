@@ -5,24 +5,29 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,6 +52,9 @@ import com.iangachoki.plantspotscout.model.Plant
 import com.iangachoki.plantspotscout.model.PlantType
 import com.iangachoki.plantspotscout.model.Spot
 import com.iangachoki.plantspotscout.ui.SpotsViewModel
+import com.iangachoki.plantspotscout.ui.components.EmptyState
+import com.iangachoki.plantspotscout.ui.components.FitBadge
+import com.iangachoki.plantspotscout.ui.components.ScreenHeader
 import com.iangachoki.plantspotscout.ui.theme.PlantSpotScoutTheme
 
 @Composable
@@ -100,29 +108,34 @@ private fun PlantList(
     onShare: (Plant) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    if (plants.isEmpty()) {
-        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(stringResource(R.string.no_plants))
+    Column(modifier = modifier.fillMaxSize()) {
+        ScreenHeader(
+            title = stringResource(R.string.tab_my_plants),
+            subtitle = stringResource(R.string.my_plants_subtitle),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        if (plants.isEmpty()) {
+            EmptyState(R.drawable.ic_plant, stringResource(R.string.no_plants))
+            return@Column
         }
-        return
-    }
-    LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(plants, key = { it.id }) { plant ->
-            PlantCard(
-                plant = plant,
-                spot = spots.firstOrNull { it.id == plant.currentSpotId },
-                onWhereShouldThisGo = { onWhereShouldThisGo(plant) },
-                onOpenCarePage = { onOpenCarePage(plant) },
-                onShare = { onShare(plant) }
-            )
+        LazyColumn(
+            contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(plants, key = { it.id }) { plant ->
+                PlantCard(
+                    plant = plant,
+                    spot = spots.firstOrNull { it.id == plant.currentSpotId },
+                    onWhereShouldThisGo = { onWhereShouldThisGo(plant) },
+                    onOpenCarePage = { onOpenCarePage(plant) },
+                    onShare = { onShare(plant) }
+                )
+            }
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PlantCard(
     plant: Plant,
@@ -132,15 +145,19 @@ private fun PlantCard(
     onShare: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(modifier = modifier.fillMaxWidth()) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
         Column {
             Row(
-                modifier = Modifier.padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.padding(start = 12.dp, top = 12.dp, end = 12.dp),
+                verticalAlignment = Alignment.Top
             ) {
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(44.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
@@ -153,10 +170,20 @@ private fun PlantCard(
                 }
                 Column(
                     modifier = Modifier
-                        .padding(start = 16.dp)
-                        .weight(1f)
+                        .padding(start = 12.dp)
+                        .weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    Text(plant.nickname, style = MaterialTheme.typography.titleMedium)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            plant.nickname,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (spot != null) {
+                            FitBadge(LightFit.of(plant.type.lightNeeds, spot.lightBand))
+                        }
+                    }
                     Text(
                         stringResource(R.string.plant_needs, plant.type.name, plant.type.lightNeeds.label),
                         style = MaterialTheme.typography.bodyMedium,
@@ -165,31 +192,39 @@ private fun PlantCard(
                     Text(
                         spot?.let { stringResource(R.string.plant_in_spot, it.name, it.room) }
                             ?: stringResource(R.string.no_spot),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (spot == null) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        }
                     )
-                    if (spot != null) {
-                        FitChip(LightFit.of(plant.type.lightNeeds, spot.lightBand))
-                    }
                 }
             }
-            Row(
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            FlowRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 4.dp, end = 4.dp, bottom = 4.dp),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.Start
             ) {
-                TextButton(onClick = onOpenCarePage) {
-                    Text(stringResource(R.string.care_page))
-                }
-                IconButton(onClick = onShare) {
-                    Icon(
-                        painterResource(R.drawable.ic_share),
-                        contentDescription = stringResource(R.string.share_plant)
-                    )
-                }
                 TextButton(onClick = onWhereShouldThisGo) {
                     Text(stringResource(R.string.where_should_this_go))
+                }
+                TextButton(onClick = onShare) {
+                    Icon(
+                        painterResource(R.drawable.ic_share),
+                        contentDescription = null,
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    )
+                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                    Text(stringResource(R.string.share_plant))
+                }
+                TextButton(onClick = onOpenCarePage) {
+                    Text(stringResource(R.string.care_page))
                 }
             }
         }
@@ -210,22 +245,6 @@ private fun bestSpotMessage(context: Context, plant: Plant, bestSpot: Spot?): St
             bestSpot.lightBand.label
         )
     }
-
-@Composable
-private fun FitChip(fit: LightFit) {
-    val colors = if (fit == LightFit.GOOD) {
-        AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            labelColor = MaterialTheme.colorScheme.onSecondaryContainer
-        )
-    } else {
-        AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            labelColor = MaterialTheme.colorScheme.onErrorContainer
-        )
-    }
-    AssistChip(onClick = {}, label = { Text(fit.label) }, colors = colors)
-}
 
 @Preview(showBackground = true)
 @Composable

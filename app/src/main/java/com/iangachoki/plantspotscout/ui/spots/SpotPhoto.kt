@@ -28,9 +28,11 @@ import kotlinx.coroutines.withContext
 
 /**
  * The spot's photo, or a placeholder icon when it has none or the file can't be read.
+ *
+ * Pass a null [size] to let [modifier] set the size, for example a full-width banner.
  */
 @Composable
-fun SpotPhoto(photoUri: String?, modifier: Modifier = Modifier, size: Dp = 72.dp) {
+fun SpotPhoto(photoUri: String?, modifier: Modifier = Modifier, size: Dp? = 72.dp) {
     val bitmap by produceState<ImageBitmap?>(initialValue = null, photoUri) {
         value = photoUri?.let { uri ->
             withContext(Dispatchers.IO) {
@@ -38,7 +40,8 @@ fun SpotPhoto(photoUri: String?, modifier: Modifier = Modifier, size: Dp = 72.dp
             }
         }
     }
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(if (size == null) 20.dp else 14.dp)
+    val sizeModifier = if (size != null) Modifier.size(size) else Modifier
     val photo = bitmap
 
     if (photo != null) {
@@ -47,13 +50,13 @@ fun SpotPhoto(photoUri: String?, modifier: Modifier = Modifier, size: Dp = 72.dp
             contentDescription = stringResource(R.string.spot_photo),
             contentScale = ContentScale.Crop,
             modifier = modifier
-                .size(size)
+                .then(sizeModifier)
                 .clip(shape)
         )
     } else {
         Box(
             modifier = modifier
-                .size(size)
+                .then(sizeModifier)
                 .clip(shape)
                 .background(MaterialTheme.colorScheme.secondaryContainer),
             contentAlignment = Alignment.Center

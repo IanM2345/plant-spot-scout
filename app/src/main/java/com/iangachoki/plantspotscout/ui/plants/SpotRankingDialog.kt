@@ -1,11 +1,19 @@
 package com.iangachoki.plantspotscout.ui.plants
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.draw.clip
+import com.iangachoki.plantspotscout.ui.components.FitBadge
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -39,7 +47,7 @@ fun SpotRankingDialog(
                 modifier = Modifier
                     .heightIn(max = 400.dp)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     stringResource(R.string.ranking_subtitle, plant.type.lightNeeds.label),
@@ -65,24 +73,45 @@ fun SpotRankingDialog(
 @Composable
 private fun RankedSpotRow(position: Int, spot: Spot, plant: Plant) {
     val fit = LightFit.of(plant.type.lightNeeds, spot.lightBand)
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            "$position.",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.width(32.dp)
-        )
-        Column(modifier = Modifier.weight(1f)) {
-            Text(spot.name, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                "${spot.room} · ${spot.lightBand.label}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+    val best = position == 1
+    Surface(
+        shape = MaterialTheme.shapes.medium,
+        color = if (best) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
+        border = if (best) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (best) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "$position",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (best) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 12.dp)
+                    .weight(1f)
+            ) {
+                Text(spot.name, style = MaterialTheme.typography.titleSmall)
+                Text(
+                    "${spot.room} · ${spot.lightBand.label}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            FitBadge(fit)
         }
-        Text(
-            fit.label,
-            style = MaterialTheme.typography.labelLarge,
-            color = if (fit == LightFit.GOOD) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-        )
     }
 }
