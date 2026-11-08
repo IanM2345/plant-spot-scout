@@ -1,7 +1,10 @@
 package com.iangachoki.plantspotscout.ui.plants
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,6 +61,14 @@ fun MyPlantsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
         plants = plants,
         spots = spots,
         onWhereShouldThisGo = { rankingFor = it.id },
+        onOpenCarePage = { plant ->
+            val view = Intent(Intent.ACTION_VIEW, Uri.parse(plant.type.careUrl))
+            try {
+                context.startActivity(view)
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(context, R.string.no_browser, Toast.LENGTH_SHORT).show()
+            }
+        },
         onShare = { plant ->
             val text = bestSpotMessage(context, plant, viewModel.rankSpotsFor(plant).firstOrNull())
             val send = Intent(Intent.ACTION_SEND).apply {
@@ -85,6 +96,7 @@ private fun PlantList(
     plants: List<Plant>,
     spots: List<Spot>,
     onWhereShouldThisGo: (Plant) -> Unit,
+    onOpenCarePage: (Plant) -> Unit,
     onShare: (Plant) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -104,6 +116,7 @@ private fun PlantList(
                 plant = plant,
                 spot = spots.firstOrNull { it.id == plant.currentSpotId },
                 onWhereShouldThisGo = { onWhereShouldThisGo(plant) },
+                onOpenCarePage = { onOpenCarePage(plant) },
                 onShare = { onShare(plant) }
             )
         }
@@ -115,6 +128,7 @@ private fun PlantCard(
     plant: Plant,
     spot: Spot?,
     onWhereShouldThisGo: () -> Unit,
+    onOpenCarePage: () -> Unit,
     onShare: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -165,6 +179,9 @@ private fun PlantCard(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                TextButton(onClick = onOpenCarePage) {
+                    Text(stringResource(R.string.care_page))
+                }
                 IconButton(onClick = onShare) {
                     Icon(
                         painterResource(R.drawable.ic_share),
@@ -222,6 +239,7 @@ private fun PlantListPreview() {
             ),
             spots = listOf(spot),
             onWhereShouldThisGo = {},
+            onOpenCarePage = {},
             onShare = {}
         )
     }

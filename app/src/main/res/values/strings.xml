@@ -62,5 +62,7 @@
     <string name="share_subject">Best spot for %1$s</string>
     <string name="share_best_spot">%1$s (%2$s) does best in %3$s, %4$s. That spot gets %5$s light. Found with Plant Spot Scout.</string>
     <string name="share_no_spot">%1$s (%2$s) needs %3$s light. Found with Plant Spot Scout.</string>
+    <string name="care_page">Care tips</string>
+    <string name="no_browser">No browser found</string>
     <string name="delete_spot_message">Delete \"%1$s\"? Plants in this spot will be left without a spot.</string>
 </resources>
