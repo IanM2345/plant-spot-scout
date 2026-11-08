@@ -85,7 +85,7 @@ fun PlantSpotScoutApp(viewModel: SpotsViewModel = viewModel()) {
         ) {
             composable(Tab.SPOTS.route) { MySpotsScreen(viewModel) }
             composable(Tab.PLANTS.route) { MyPlantsScreen(viewModel) }
-            composable(Tab.SETTINGS.route) { SettingsScreen() }
+            composable(Tab.SETTINGS.route) { SettingsScreen(viewModel) }
         }
     }
 }
