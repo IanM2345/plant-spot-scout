@@ -26,27 +26,22 @@ import androidx.compose.ui.unit.dp
 import com.iangachoki.plantspotscout.R
 import com.iangachoki.plantspotscout.model.LightBand
 import com.iangachoki.plantspotscout.model.LightFit
-import com.iangachoki.plantspotscout.ui.theme.Espresso
-import com.iangachoki.plantspotscout.ui.theme.Linen
-import com.iangachoki.plantspotscout.ui.theme.Stone
-import com.iangachoki.plantspotscout.ui.theme.Taupe
-import com.iangachoki.plantspotscout.ui.theme.Walnut
+import com.iangachoki.plantspotscout.ui.theme.containerColor
+import com.iangachoki.plantspotscout.ui.theme.contentColor
 
-/** Dot colour for each band, light to dark so brighter light reads as a stronger colour. */
-fun LightBand.dotColor(): Color = when (this) {
-    LightBand.LOW -> Stone
-    LightBand.MEDIUM -> Taupe
-    LightBand.BRIGHT_INDIRECT -> Walnut
-    LightBand.DIRECT -> Espresso
-}
+/** Dot colour for each band: the band's own container colour from the design. */
+fun LightBand.dotColor(): Color = containerColor()
 
-/** A "Light: <band>" pill with a coloured dot for the band. */
+/**
+ * A "Light: <band>" pill filled with the band colour. The band name is always written out,
+ * so the meaning never depends on colour alone.
+ */
 @Composable
 fun LightBandChip(band: LightBand, modifier: Modifier = Modifier) {
     Surface(
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        color = band.containerColor(),
+        contentColor = band.contentColor(),
         modifier = modifier
     ) {
         Row(
@@ -59,7 +54,8 @@ fun LightBandChip(band: LightBand, modifier: Modifier = Modifier) {
                     .size(10.dp)
                     .clip(CircleShape)
                     .background(band.dotColor())
-                    .border(1.dp, Linen.copy(alpha = 0.6f), CircleShape)
+                    // The ring is the text colour so the dot stays visible on the same-coloured chip.
+                    .border(1.dp, band.contentColor(), CircleShape)
             )
             Text(
                 stringResource(R.string.light_band, band.label),
