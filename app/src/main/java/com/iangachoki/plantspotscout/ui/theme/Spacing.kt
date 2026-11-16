@@ -18,4 +18,6 @@ object Spacing {
     val cardGap = 12.dp // between cards in a list
     val sectionGap = 24.dp // above a section title
     val buttonHeight = 48.dp
+    val minTouchTarget = 48.dp // smallest tappable area for any icon button
+    val photoButton = 40.dp // round button drawn over a photo
 }

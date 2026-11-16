@@ -83,21 +83,6 @@ fun FitBadge(fit: LightFit, modifier: Modifier = Modifier) {
     }
 }
 
-/** The large serif title at the top of each tab. */
-@Composable
-fun ScreenHeader(title: String, modifier: Modifier = Modifier, subtitle: String? = null) {
-    Column(modifier = modifier.padding(top = 8.dp, bottom = 4.dp)) {
-        Text(title, style = MaterialTheme.typography.headlineMedium)
-        if (subtitle != null) {
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
 /** A centred icon and message for an empty list. */
 @Composable
 fun EmptyState(iconRes: Int, message: String, modifier: Modifier = Modifier) {

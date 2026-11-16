@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -30,9 +31,10 @@ import kotlinx.coroutines.withContext
  * The spot's photo, or a placeholder icon when it has none or the file can't be read.
  *
  * Pass a null [size] to let [modifier] set the size, for example a full-width banner.
+ * [shape] replaces the default rounded corners, for example a square-edged full-bleed photo.
  */
 @Composable
-fun SpotPhoto(photoUri: String?, modifier: Modifier = Modifier, size: Dp? = 72.dp) {
+fun SpotPhoto(photoUri: String?, modifier: Modifier = Modifier, size: Dp? = 72.dp, shape: Shape? = null) {
     val bitmap by produceState<ImageBitmap?>(initialValue = null, photoUri) {
         value = photoUri?.let { uri ->
             withContext(Dispatchers.IO) {
@@ -40,7 +42,7 @@ fun SpotPhoto(photoUri: String?, modifier: Modifier = Modifier, size: Dp? = 72.d
             }
         }
     }
-    val shape = RoundedCornerShape(if (size == null) 20.dp else 14.dp)
+    val clipShape = shape ?: RoundedCornerShape(if (size == null) 20.dp else 14.dp)
     val sizeModifier = if (size != null) Modifier.size(size) else Modifier
     val photo = bitmap
 
@@ -51,13 +53,13 @@ fun SpotPhoto(photoUri: String?, modifier: Modifier = Modifier, size: Dp? = 72.d
             contentScale = ContentScale.Crop,
             modifier = modifier
                 .then(sizeModifier)
-                .clip(shape)
+                .clip(clipShape)
         )
     } else {
         Box(
             modifier = modifier
                 .then(sizeModifier)
-                .clip(shape)
+                .clip(clipShape)
                 .background(MaterialTheme.colorScheme.secondaryContainer),
             contentAlignment = Alignment.Center
         ) {

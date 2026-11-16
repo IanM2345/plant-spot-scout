@@ -37,7 +37,7 @@ import com.iangachoki.plantspotscout.model.Spot
 import com.iangachoki.plantspotscout.ui.SpotsViewModel
 import com.iangachoki.plantspotscout.ui.components.EmptyState
 import com.iangachoki.plantspotscout.ui.components.LightBandChip
-import com.iangachoki.plantspotscout.ui.components.ScreenHeader
+import com.iangachoki.plantspotscout.ui.components.LargeTitleTopBar
 import com.iangachoki.plantspotscout.ui.theme.PlantSpotScoutTheme
 
 @Composable
@@ -84,10 +84,9 @@ private fun SpotList(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        ScreenHeader(
+        LargeTitleTopBar(
             title = stringResource(R.string.tab_my_spots),
-            subtitle = stringResource(R.string.my_spots_subtitle),
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            subtitle = stringResource(R.string.my_spots_subtitle)
         )
         if (spots.isEmpty()) {
             EmptyState(R.drawable.ic_spot, stringResource(R.string.no_spot))
