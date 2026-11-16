@@ -1,107 +1,69 @@
 package com.iangachoki.plantspotscout.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
+// Light scheme built only from Color.kt. Slots the design does not name reuse the closest design colour,
+// so no Material baseline (purple) colours leak through.
 private val LightColorScheme = lightColorScheme(
-    primary = Walnut,
-    onPrimary = Cream,
-    primaryContainer = Stone,
-    onPrimaryContainer = Espresso,
-    inversePrimary = Taupe,
-    secondary = Taupe,
-    onSecondary = Espresso,
-    secondaryContainer = Linen,
-    onSecondaryContainer = Espresso,
-    tertiary = Espresso,
-    onTertiary = Linen,
-    tertiaryContainer = Linen,
-    onTertiaryContainer = Espresso,
-    background = Cream,
-    onBackground = Espresso,
-    surface = Cream,
-    onSurface = Espresso,
-    surfaceVariant = Linen,
-    onSurfaceVariant = Walnut,
-    surfaceTint = Walnut,
-    inverseSurface = Espresso,
-    inverseOnSurface = Linen,
-    outline = Taupe,
-    outlineVariant = Stone,
-    surfaceBright = Cream,
-    surfaceDim = Linen,
-    surfaceContainerLowest = Color.White,
-    surfaceContainerLow = Cream,
-    surfaceContainer = Parchment,
-    surfaceContainerHigh = Parchment,
-    surfaceContainerHighest = Linen,
-    error = Rust,
-    onError = Cream,
-    errorContainer = RustContainer,
-    onErrorContainer = OnRustContainer
+    primary = Primary,
+    onPrimary = OnPrimary,
+    primaryContainer = PrimaryContainer,
+    onPrimaryContainer = OnPrimaryContainer,
+    inversePrimary = PrimaryContainer,
+    secondary = Primary,
+    onSecondary = OnPrimary,
+    secondaryContainer = PrimaryContainer,
+    onSecondaryContainer = OnPrimaryContainer,
+    tertiary = Primary,
+    onTertiary = OnPrimary,
+    tertiaryContainer = PrimaryContainer,
+    onTertiaryContainer = OnPrimaryContainer,
+    background = Background,
+    onBackground = OnBackground,
+    surface = Surface,
+    onSurface = OnSurface,
+    surfaceVariant = SurfaceVariant,
+    onSurfaceVariant = OnSurfaceVariant,
+    surfaceTint = Primary,
+    inverseSurface = OnSurface,
+    inverseOnSurface = Surface,
+    outline = Outline,
+    outlineVariant = OutlineVariant,
+    surfaceBright = Surface,
+    surfaceDim = SurfaceVariant,
+    surfaceContainerLowest = Surface,
+    surfaceContainerLow = Surface,
+    surfaceContainer = Surface,
+    surfaceContainerHigh = SurfaceVariant,
+    surfaceContainerHighest = SurfaceVariant,
+    error = Error,
+    onError = OnError,
+    errorContainer = Error,
+    onErrorContainer = OnError
 )
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Taupe,
-    onPrimary = Espresso,
-    primaryContainer = Walnut,
-    onPrimaryContainer = Linen,
-    inversePrimary = Walnut,
-    secondary = Stone,
-    onSecondary = Espresso,
-    secondaryContainer = DeepUmber,
-    onSecondaryContainer = Linen,
-    tertiary = Linen,
-    onTertiary = Espresso,
-    tertiaryContainer = Walnut,
-    onTertiaryContainer = Linen,
-    background = Espresso,
-    onBackground = Linen,
-    surface = Espresso,
-    onSurface = Linen,
-    surfaceVariant = Umber,
-    onSurfaceVariant = Stone,
-    surfaceTint = Taupe,
-    inverseSurface = Linen,
-    inverseOnSurface = Espresso,
-    outline = Taupe,
-    outlineVariant = Walnut,
-    surfaceBright = DeepUmber,
-    surfaceDim = Espresso,
-    surfaceContainerLowest = Color(0xFF1F1307),
-    surfaceContainerLow = Bark,
-    surfaceContainer = Bark,
-    surfaceContainerHigh = Umber,
-    surfaceContainerHighest = DeepUmber,
-    error = RustLight,
-    onError = RustDark,
-    errorContainer = RustDark,
-    onErrorContainer = RustContainer
-)
-
+// Corner radii: small for chips, medium for cards. Buttons and band chips use CircleShape (pill) directly.
 private val AppShapes = Shapes(
-    extraSmall = RoundedCornerShape(6.dp),
-    small = RoundedCornerShape(10.dp),
+    small = RoundedCornerShape(8.dp),
     medium = RoundedCornerShape(16.dp),
     large = RoundedCornerShape(24.dp),
-    extraLarge = RoundedCornerShape(32.dp)
+    extraLarge = RoundedCornerShape(28.dp)
 )
 
 @Composable
 fun PlantSpotScoutTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    // The design is light only for now, so this is ignored. Kept so callers do not change.
+    @Suppress("UNUSED_PARAMETER") darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     // Dynamic colour is off on purpose: the app always uses its own palette.
     MaterialTheme(
-        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
+        colorScheme = LightColorScheme,
         typography = Typography,
         shapes = AppShapes,
         content = content

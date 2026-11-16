@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="espresso">#FF2C1C0B</color>
-    <color name="walnut">#FF724E3F</color>
-    <color name="taupe">#FFA9917C</color>
-    <color name="stone">#FFC4BAAE</color>
-    <color name="linen">#FFDCD0C0</color>
-    <color name="cream">#FFF7F2EB</color>
+    <!-- Screen background from the Cyanotype design. Used by the window so there is no flash before Compose draws. -->
+    <color name="background">#FFF3F5F8</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>
