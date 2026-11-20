@@ -1,6 +1,5 @@
 package com.iangachoki.plantspotscout.ui.spots
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -39,6 +39,7 @@ import com.iangachoki.plantspotscout.ui.components.EmptyState
 import com.iangachoki.plantspotscout.ui.components.LightBandChip
 import com.iangachoki.plantspotscout.ui.components.LargeTitleTopBar
 import com.iangachoki.plantspotscout.ui.theme.PlantSpotScoutTheme
+import com.iangachoki.plantspotscout.ui.theme.Spacing
 
 @Composable
 fun MySpotsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
@@ -109,14 +110,14 @@ fun SpotCard(spot: Spot, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(Spacing.cardPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SpotPhoto(spot.photoUri)
+            SpotPhoto(spot.photoUri, size = 56.dp, shape = RoundedCornerShape(8.dp))
             Column(
                 modifier = Modifier
                     .padding(start = 16.dp)
