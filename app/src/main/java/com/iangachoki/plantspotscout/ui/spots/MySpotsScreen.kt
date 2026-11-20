@@ -9,11 +9,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -52,9 +56,10 @@ fun MySpotsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
             spots = spots,
             onSpotClick = { spot ->
                 context.startActivity(SpotDetailActivity.newIntent(context, spot.id))
-            }
+            },
+            onAddClick = { showAddDialog = true }
         )
-        ExtendedFloatingActionButton(
+        if (spots.isNotEmpty()) ExtendedFloatingActionButton(
             onClick = { showAddDialog = true },
             icon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null) },
             text = { Text(stringResource(R.string.add_spot)) },
@@ -82,7 +87,8 @@ fun MySpotsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
 private fun SpotList(
     spots: List<Spot>,
     onSpotClick: (Spot) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onAddClick: () -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         LargeTitleTopBar(
@@ -90,15 +96,40 @@ private fun SpotList(
             subtitle = stringResource(R.string.my_spots_subtitle)
         )
         if (spots.isEmpty()) {
-            EmptyState(R.drawable.ic_spot, stringResource(R.string.no_spot))
+            EmptyState(
+                R.drawable.ic_spot,
+                stringResource(R.string.no_spots_body),
+                title = stringResource(R.string.no_spots_title),
+                action = { Button(onClick = onAddClick) { Text(stringResource(R.string.measure_window)) } }
+            )
             return@Column
+        }
+        val rooms = spots.map { it.room }.distinct()
+        var selected by rememberSaveable { mutableStateOf<String?>(null) }
+        val room = selected.takeIf { it in rooms } // a room whose last spot is gone falls back to All
+        LazyRow(
+            contentPadding = PaddingValues(start = Spacing.screenPadding),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+        ) {
+            items(listOf<String?>(null) + rooms) { r ->
+                FilterChip(
+                    selected = room == r,
+                    onClick = { selected = r },
+                    label = { Text(r ?: stringResource(R.string.all_rooms)) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+            }
         }
         LazyColumn(
             // Extra bottom padding so the add button never covers the last card.
             contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(spots, key = { it.id }) { spot ->
+            items(spots.filter { room == null || it.room == room }, key = { it.id }) { spot ->
                 SpotCard(spot, onClick = { onSpotClick(spot) })
             }
         }
