@@ -7,6 +7,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import android.content.Context
+import android.content.Intent
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
+import com.iangachoki.plantspotscout.ui.components.PhotoHeaderAction
+import com.iangachoki.plantspotscout.ui.components.PhotoHeaderTopBar
+import com.iangachoki.plantspotscout.ui.theme.Spacing
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.draw.clip
@@ -23,16 +36,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,7 +58,6 @@ import com.iangachoki.plantspotscout.model.Plant
 import com.iangachoki.plantspotscout.model.Spot
 import com.iangachoki.plantspotscout.ui.SpotsViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpotDetailScreen(
     spotId: Long,
@@ -65,45 +73,55 @@ fun SpotDetailScreen(
     val spot = spots.firstOrNull { it.id == spotId }
     var showEditDialog by rememberSaveable { mutableStateOf(false) }
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.spot_details)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.back))
-                    }
-                },
-                actions = {
-                    if (spot != null) {
-                        IconButton(onClick = { showEditDialog = true }) {
-                            Icon(painterResource(R.drawable.ic_edit), contentDescription = stringResource(R.string.edit))
-                        }
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
+    Box(modifier = modifier.fillMaxSize()) {
         if (spot == null) {
-            Box(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(stringResource(R.string.spot_not_found))
             }
+            PhotoHeaderTopBar(onBack = onBack)
         } else {
             SpotDetails(
                 spot = spot,
                 plants = plants.filter { it.currentSpotId == spot.id },
                 onDelete = { showDeleteDialog = true },
                 onMeasure = { onMeasure(spot) },
-                onTakePhoto = { onTakePhoto(spot) },
-                modifier = Modifier.padding(innerPadding)
+                onTakePhoto = { onTakePhoto(spot) }
             )
+            // Drawn over the photo at the top of the screen.
+            PhotoHeaderTopBar(onBack = onBack) {
+                PhotoHeaderAction(
+                    icon = R.drawable.ic_camera,
+                    contentDescription = stringResource(
+                        if (spot.photoUri == null) R.string.take_photo else R.string.retake_photo
+                    ),
+                    onClick = { onTakePhoto(spot) }
+                )
+                PhotoHeaderAction(
+                    icon = R.drawable.ic_share,
+                    contentDescription = stringResource(R.string.share_spot),
+                    onClick = { shareSpot(context, spot) }
+                )
+                Box {
+                    PhotoHeaderAction(
+                        icon = R.drawable.ic_more_vert,
+                        contentDescription = stringResource(R.string.more_options),
+                        onClick = { showMenu = true }
+                    )
+                    DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.edit_spot)) },
+                            leadingIcon = { Icon(painterResource(R.drawable.ic_edit), contentDescription = null) },
+                            onClick = {
+                                showMenu = false
+                                showEditDialog = true
+                            }
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -157,20 +175,25 @@ private fun SpotDetails(
     onTakePhoto: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // The photo runs up behind the status bar, so it gets that much extra height.
+    val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         SpotPhoto(
             spot.photoUri,
             size = null,
+            shape = RectangleShape,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(180.dp)
+                .height(180.dp + statusBarHeight)
         )
+        Column(
+            modifier = Modifier.padding(horizontal = Spacing.screenPadding, vertical = Spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
         OutlinedButton(onClick = onTakePhoto, modifier = Modifier.fillMaxWidth()) {
             Icon(
                 painterResource(R.drawable.ic_photo),
@@ -237,7 +260,20 @@ private fun SpotDetails(
         ) {
             Text(stringResource(R.string.delete_spot))
         }
+        }
     }
+}
+
+/** Opens the share sheet with a short note about the spot and its light. */
+private fun shareSpot(context: Context, spot: Spot) {
+    val send = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(
+            Intent.EXTRA_TEXT,
+            context.getString(R.string.share_spot_text, spot.name, spot.room, spot.lightBand.label)
+        )
+    }
+    context.startActivity(Intent.createChooser(send, context.getString(R.string.share_spot)))
 }
 
 @Composable

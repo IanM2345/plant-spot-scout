@@ -34,7 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.iangachoki.plantspotscout.R
 import com.iangachoki.plantspotscout.ui.SpotsViewModel
-import com.iangachoki.plantspotscout.ui.components.ScreenHeader
+import com.iangachoki.plantspotscout.ui.components.LargeTitleTopBar
 import kotlinx.coroutines.launch
 
 @Composable
@@ -58,10 +58,7 @@ fun SettingsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            ScreenHeader(
-                title = stringResource(R.string.tab_settings),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
+            LargeTitleTopBar(title = stringResource(R.string.tab_settings))
             SectionHeader(stringResource(R.string.settings_measuring))
             ListItem(
                 colors = itemColors,

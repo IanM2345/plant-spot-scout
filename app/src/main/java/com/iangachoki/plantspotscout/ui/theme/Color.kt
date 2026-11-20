@@ -21,6 +21,9 @@ val OnSurface = Color(0xFF0E1A2B)
 val SurfaceVariant = Color(0xFFE6ECF4)
 val OnSurfaceVariant = Color(0xFF4A5668)
 
+// Light tint used by the bottom navigation bar and menus.
+val SurfaceContainer = Color(0xFFEAEFF5)
+
 // Borders and dividers.
 val Outline = Color(0xFFC9D3E0)
 val OutlineVariant = Color(0xFFE1E7EF)

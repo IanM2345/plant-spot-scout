@@ -3,6 +3,13 @@
     <string name="tab_my_spots">My Spots</string>
     <string name="tab_my_plants">My Plants</string>
     <string name="tab_settings">Settings</string>
+    <string name="nav_spots">Spots</string>
+    <string name="nav_plants">Plants</string>
+    <string name="nav_settings">Settings</string>
+    <string name="measuring_subtitle">Measuring light</string>
+    <string name="share_spot">Share spot</string>
+    <string name="share_spot_text">%1$s (%2$s) gets %3$s light. Found with Plant Spot Scout.</string>
+    <string name="more_options">More options</string>
     <string name="no_spot">No spot yet</string>
     <string name="spot_photo_placeholder">Spot photo placeholder</string>
     <string name="light_band">Light: %1$s</string>
