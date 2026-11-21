@@ -2,10 +2,8 @@ package com.iangachoki.plantspotscout.ui.spots
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import android.content.Context
 import android.content.Intent
@@ -44,8 +42,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -86,9 +84,8 @@ fun SpotDetailScreen(
             SpotDetails(
                 spot = spot,
                 plants = plants.filter { it.currentSpotId == spot.id },
-                onDelete = { showDeleteDialog = true },
-                onMeasure = { onMeasure(spot) },
-                onTakePhoto = { onTakePhoto(spot) }
+                onEdit = { showEditDialog = true },
+                onMeasure = { onMeasure(spot) }
             )
             // Drawn over the photo at the top of the screen.
             PhotoHeaderTopBar(onBack = onBack) {
@@ -117,6 +114,13 @@ fun SpotDetailScreen(
                             onClick = {
                                 showMenu = false
                                 showEditDialog = true
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.delete_spot)) },
+                            onClick = {
+                                showMenu = false
+                                showDeleteDialog = true
                             }
                         )
                     }
@@ -170,9 +174,8 @@ fun SpotDetailScreen(
 private fun SpotDetails(
     spot: Spot,
     plants: List<Plant>,
-    onDelete: () -> Unit,
+    onEdit: () -> Unit,
     onMeasure: () -> Unit,
-    onTakePhoto: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // The photo runs up behind the status bar, so it gets that much extra height.
@@ -194,40 +197,13 @@ private fun SpotDetails(
             modifier = Modifier.padding(horizontal = Spacing.screenPadding, vertical = Spacing.sm),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-        OutlinedButton(onClick = onTakePhoto, modifier = Modifier.fillMaxWidth()) {
-            Icon(
-                painterResource(R.drawable.ic_photo),
-                contentDescription = null,
-                modifier = Modifier.size(ButtonDefaults.IconSize)
-            )
-            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-            Text(
-                stringResource(if (spot.photoUri == null) R.string.take_photo else R.string.retake_photo)
-            )
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(spot.name, style = MaterialTheme.typography.headlineSmall)
-            Text(
-                spot.room,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Text(spot.name, style = MaterialTheme.typography.headlineMedium)
         LightBandChip(spot.lightBand)
-        Button(
-            onClick = onMeasure,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp)
-        ) {
-            Text(stringResource(R.string.measure), style = MaterialTheme.typography.titleMedium)
-        }
 
         Text(
             stringResource(R.string.plants_here),
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = Spacing.sectionGap)
         )
         if (plants.isEmpty()) {
             Text(
@@ -250,15 +226,18 @@ private fun SpotDetails(
             }
         }
 
-        OutlinedButton(
-            onClick = onDelete,
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 16.dp)
+                .padding(top = Spacing.sectionGap, bottom = Spacing.lg)
         ) {
-            Text(stringResource(R.string.delete_spot))
+            Button(onClick = onMeasure, modifier = Modifier.weight(1f).height(Spacing.buttonHeight)) {
+                Text(stringResource(R.string.measure_again))
+            }
+            OutlinedButton(onClick = onEdit, modifier = Modifier.weight(1f).height(Spacing.buttonHeight)) {
+                Text(stringResource(R.string.edit_spot))
+            }
         }
         }
     }
