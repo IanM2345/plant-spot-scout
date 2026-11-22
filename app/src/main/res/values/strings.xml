@@ -21,8 +21,12 @@
     <string name="spot_details">Spot details</string>
     <string name="back">Back</string>
     <string name="spot_not_found">This spot no longer exists.</string>
-    <string name="plants_here">Plants in this spot</string>
-    <string name="no_plants_here">No plants here yet.</string>
+    <string name="best_plants">Best plants for this spot</string>
+    <string name="fit_reason_good">Likes %1$s light</string>
+    <string name="fit_reason_dark">Needs more light than this spot gets</string>
+    <string name="fit_reason_bright">Needs less light than this spot gets</string>
+    <string name="great_fit">Great fit</string>
+    <string name="okay_fit">Okay</string>
     <string name="edit">Edit</string>
     <string name="edit_spot">Edit spot</string>
     <string name="save">Save</string>

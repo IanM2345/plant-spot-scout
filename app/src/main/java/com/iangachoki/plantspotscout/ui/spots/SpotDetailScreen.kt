@@ -1,12 +1,10 @@
 package com.iangachoki.plantspotscout.ui.spots
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.layout.WindowInsets
@@ -44,8 +42,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,9 +52,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.iangachoki.plantspotscout.R
-import com.iangachoki.plantspotscout.model.Plant
+import com.iangachoki.plantspotscout.model.LightFit
+import com.iangachoki.plantspotscout.model.PlantType
 import com.iangachoki.plantspotscout.model.Spot
 import com.iangachoki.plantspotscout.ui.SpotsViewModel
+import kotlin.math.abs
 
 @Composable
 fun SpotDetailScreen(
@@ -69,7 +69,6 @@ fun SpotDetailScreen(
     modifier: Modifier = Modifier
 ) {
     val spots by viewModel.spots.collectAsState()
-    val plants by viewModel.plants.collectAsState()
     val spot = spots.firstOrNull { it.id == spotId }
     var showEditDialog by rememberSaveable { mutableStateOf(false) }
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
@@ -85,10 +84,9 @@ fun SpotDetailScreen(
         } else {
             SpotDetails(
                 spot = spot,
-                plants = plants.filter { it.currentSpotId == spot.id },
-                onDelete = { showDeleteDialog = true },
-                onMeasure = { onMeasure(spot) },
-                onTakePhoto = { onTakePhoto(spot) }
+                plantTypes = viewModel.plantTypes,
+                onEdit = { showEditDialog = true },
+                onMeasure = { onMeasure(spot) }
             )
             // Drawn over the photo at the top of the screen.
             PhotoHeaderTopBar(onBack = onBack) {
@@ -117,6 +115,13 @@ fun SpotDetailScreen(
                             onClick = {
                                 showMenu = false
                                 showEditDialog = true
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.delete_spot)) },
+                            onClick = {
+                                showMenu = false
+                                showDeleteDialog = true
                             }
                         )
                     }
@@ -169,10 +174,9 @@ fun SpotDetailScreen(
 @Composable
 private fun SpotDetails(
     spot: Spot,
-    plants: List<Plant>,
-    onDelete: () -> Unit,
+    plantTypes: List<PlantType>,
+    onEdit: () -> Unit,
     onMeasure: () -> Unit,
-    onTakePhoto: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // The photo runs up behind the status bar, so it gets that much extra height.
@@ -194,71 +198,44 @@ private fun SpotDetails(
             modifier = Modifier.padding(horizontal = Spacing.screenPadding, vertical = Spacing.sm),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-        OutlinedButton(onClick = onTakePhoto, modifier = Modifier.fillMaxWidth()) {
-            Icon(
-                painterResource(R.drawable.ic_photo),
-                contentDescription = null,
-                modifier = Modifier.size(ButtonDefaults.IconSize)
-            )
-            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-            Text(
-                stringResource(if (spot.photoUri == null) R.string.take_photo else R.string.retake_photo)
-            )
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(spot.name, style = MaterialTheme.typography.headlineSmall)
-            Text(
-                spot.room,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Text(spot.name, style = MaterialTheme.typography.headlineMedium)
         LightBandChip(spot.lightBand)
-        Button(
-            onClick = onMeasure,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp)
-        ) {
-            Text(stringResource(R.string.measure), style = MaterialTheme.typography.titleMedium)
-        }
 
         Text(
-            stringResource(R.string.plants_here),
+            stringResource(R.string.best_plants),
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = Spacing.sectionGap)
         )
-        if (plants.isEmpty()) {
-            Text(
-                stringResource(R.string.no_plants_here),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                plants.forEachIndexed { index, plant ->
-                    if (index > 0) {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    }
-                    PlantRow(plant)
+        // Closest band first: distance 0 is exactly the GOOD fits, then the nearest misses.
+        val best = plantTypes
+            .map { it to LightFit.of(it.lightNeeds, spot.lightBand) }
+            .sortedBy { abs(it.first.lightNeeds.ordinal - spot.lightBand.ordinal) }
+            .take(3)
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            best.forEachIndexed { index, (type, fit) ->
+                if (index > 0) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
+                FitRow(index + 1, type, fit)
             }
         }
 
-        OutlinedButton(
-            onClick = onDelete,
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 16.dp)
+                .padding(top = Spacing.sectionGap, bottom = Spacing.lg)
         ) {
-            Text(stringResource(R.string.delete_spot))
+            Button(onClick = onMeasure, modifier = Modifier.weight(1f).height(Spacing.buttonHeight)) {
+                Text(stringResource(R.string.measure_again))
+            }
+            OutlinedButton(onClick = onEdit, modifier = Modifier.weight(1f).height(Spacing.buttonHeight)) {
+                Text(stringResource(R.string.edit_spot))
+            }
         }
         }
     }
@@ -277,34 +254,38 @@ private fun shareSpot(context: Context, spot: Spot) {
 }
 
 @Composable
-private fun PlantRow(plant: Plant) {
+private fun FitRow(rank: Int, type: PlantType, fit: LightFit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(horizontal = Spacing.cardPadding, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(36.dp)
+                .size(24.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                painterResource(R.drawable.ic_plant),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(20.dp)
-            )
+            Text(rank.toString(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         }
-        Column(modifier = Modifier.padding(start = 12.dp)) {
-            Text(plant.nickname, style = MaterialTheme.typography.titleMedium)
+        Column(modifier = Modifier.weight(1f).padding(horizontal = Spacing.md)) {
+            Text(type.name, style = MaterialTheme.typography.titleMedium)
             Text(
-                plant.type.name,
+                when (fit) {
+                    LightFit.GOOD -> stringResource(R.string.fit_reason_good, type.lightNeeds.label.lowercase())
+                    LightFit.TOO_DARK -> stringResource(R.string.fit_reason_dark)
+                    LightFit.TOO_BRIGHT -> stringResource(R.string.fit_reason_bright)
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        val good = fit == LightFit.GOOD
+        Text(
+            stringResource(if (good) R.string.great_fit else R.string.okay_fit),
+            color = if (good) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
