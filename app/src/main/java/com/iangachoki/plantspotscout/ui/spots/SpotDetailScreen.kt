@@ -1,10 +1,10 @@
 package com.iangachoki.plantspotscout.ui.spots
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.layout.WindowInsets
@@ -52,9 +52,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.iangachoki.plantspotscout.R
-import com.iangachoki.plantspotscout.model.Plant
+import com.iangachoki.plantspotscout.model.LightFit
+import com.iangachoki.plantspotscout.model.PlantType
 import com.iangachoki.plantspotscout.model.Spot
 import com.iangachoki.plantspotscout.ui.SpotsViewModel
+import kotlin.math.abs
 
 @Composable
 fun SpotDetailScreen(
@@ -67,7 +69,6 @@ fun SpotDetailScreen(
     modifier: Modifier = Modifier
 ) {
     val spots by viewModel.spots.collectAsState()
-    val plants by viewModel.plants.collectAsState()
     val spot = spots.firstOrNull { it.id == spotId }
     var showEditDialog by rememberSaveable { mutableStateOf(false) }
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
@@ -83,7 +84,7 @@ fun SpotDetailScreen(
         } else {
             SpotDetails(
                 spot = spot,
-                plants = plants.filter { it.currentSpotId == spot.id },
+                plantTypes = viewModel.plantTypes,
                 onEdit = { showEditDialog = true },
                 onMeasure = { onMeasure(spot) }
             )
@@ -173,7 +174,7 @@ fun SpotDetailScreen(
 @Composable
 private fun SpotDetails(
     spot: Spot,
-    plants: List<Plant>,
+    plantTypes: List<PlantType>,
     onEdit: () -> Unit,
     onMeasure: () -> Unit,
     modifier: Modifier = Modifier
@@ -201,28 +202,25 @@ private fun SpotDetails(
         LightBandChip(spot.lightBand)
 
         Text(
-            stringResource(R.string.plants_here),
+            stringResource(R.string.best_plants),
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(top = Spacing.sectionGap)
         )
-        if (plants.isEmpty()) {
-            Text(
-                stringResource(R.string.no_plants_here),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                plants.forEachIndexed { index, plant ->
-                    if (index > 0) {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    }
-                    PlantRow(plant)
+        // Closest band first: distance 0 is exactly the GOOD fits, then the nearest misses.
+        val best = plantTypes
+            .map { it to LightFit.of(it.lightNeeds, spot.lightBand) }
+            .sortedBy { abs(it.first.lightNeeds.ordinal - spot.lightBand.ordinal) }
+            .take(3)
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            best.forEachIndexed { index, (type, fit) ->
+                if (index > 0) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
+                FitRow(index + 1, type, fit)
             }
         }
 
@@ -256,34 +254,38 @@ private fun shareSpot(context: Context, spot: Spot) {
 }
 
 @Composable
-private fun PlantRow(plant: Plant) {
+private fun FitRow(rank: Int, type: PlantType, fit: LightFit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(horizontal = Spacing.cardPadding, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(36.dp)
+                .size(24.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                painterResource(R.drawable.ic_plant),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(20.dp)
-            )
+            Text(rank.toString(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         }
-        Column(modifier = Modifier.padding(start = 12.dp)) {
-            Text(plant.nickname, style = MaterialTheme.typography.titleMedium)
+        Column(modifier = Modifier.weight(1f).padding(horizontal = Spacing.md)) {
+            Text(type.name, style = MaterialTheme.typography.titleMedium)
             Text(
-                plant.type.name,
+                when (fit) {
+                    LightFit.GOOD -> stringResource(R.string.fit_reason_good, type.lightNeeds.label.lowercase())
+                    LightFit.TOO_DARK -> stringResource(R.string.fit_reason_dark)
+                    LightFit.TOO_BRIGHT -> stringResource(R.string.fit_reason_bright)
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        val good = fit == LightFit.GOOD
+        Text(
+            stringResource(if (good) R.string.great_fit else R.string.okay_fit),
+            color = if (good) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

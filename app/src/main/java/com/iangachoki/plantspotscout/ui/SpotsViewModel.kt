@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.iangachoki.plantspotscout.data.PlantRepository
 import com.iangachoki.plantspotscout.model.LightBand
 import com.iangachoki.plantspotscout.model.Plant
+import com.iangachoki.plantspotscout.model.PlantType
 import com.iangachoki.plantspotscout.model.Spot
 import com.iangachoki.plantspotscout.model.rankSpots
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +19,7 @@ class SpotsViewModel(
     val spots: StateFlow<List<Spot>> = repository.spots
     val plants: StateFlow<List<Plant>> = repository.plants
     val rooms: List<String> = repository.rooms
+    val plantTypes: List<PlantType> = repository.plantTypes
     val demoMode: StateFlow<Boolean> = repository.demoMode
 
     fun setDemoMode(enabled: Boolean) {
