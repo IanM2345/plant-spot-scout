@@ -3,6 +3,7 @@ package com.iangachoki.plantspotscout.ui.measure
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorManager
+import android.os.SystemClock
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,13 +12,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -26,6 +30,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,13 +49,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.iangachoki.plantspotscout.R
 import com.iangachoki.plantspotscout.model.LightBand
 import com.iangachoki.plantspotscout.ui.components.BackTopBar
+import com.iangachoki.plantspotscout.ui.theme.OnWarningContainer
 import com.iangachoki.plantspotscout.ui.theme.Spacing
+import com.iangachoki.plantspotscout.ui.theme.WarningContainer
 import kotlinx.coroutines.delay
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 /** How long one session runs. */
@@ -79,15 +89,33 @@ fun MeasureSessionScreen(
     val currentSliderLux by rememberUpdatedState(sliderLux)
     val currentUseRandom by rememberUpdatedState(useRandom)
     val context = LocalContext.current
-    val sensor = remember {
-        (context.getSystemService(Context.SENSOR_SERVICE) as SensorManager).getDefaultSensor(Sensor.TYPE_LIGHT)
+    val sensorManager = remember { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
+    val sensor = remember { sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT) }
+    val accelerometer = remember { sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) }
+    var skipped by remember { mutableIntStateOf(0) }
+    var moving by remember { mutableStateOf(false) }
+    var lastMoveMs by remember { mutableLongStateOf(0L) }
+    var lastMagnitude by remember { mutableStateOf<Float?>(null) }
+    SensorEffect(sensor, phase == Phase.MEASURING) {
+        // Without an accelerometer lastMoveMs stays 0, so every sample is kept.
+        if (SystemClock.elapsedRealtime() - lastMoveMs < MOVE_HOLD_MS) skipped++ else readings += it[0]
     }
-    LightSensorEffect(sensor, phase == Phase.MEASURING) { readings += it }
+    SensorEffect(accelerometer, phase == Phase.MEASURING && sensor != null) {
+        val magnitude = sqrt(it[0] * it[0] + it[1] * it[1] + it[2] * it[2])
+        val now = SystemClock.elapsedRealtime()
+        if (isMoving(magnitude, lastMagnitude)) lastMoveMs = now
+        lastMagnitude = magnitude
+        moving = now - lastMoveMs < MOVE_HOLD_MS
+    }
 
     // Runs the countdown; without a light sensor it also collects one fake reading every half second.
     LaunchedEffect(phase) {
         if (phase != Phase.MEASURING) return@LaunchedEffect
         readings.clear()
+        skipped = 0
+        moving = false
+        lastMoveMs = 0L
+        lastMagnitude = null
         average = null
         val randomBase = Random.nextFloat() * 15_000f
         for (second in SESSION_SECONDS downTo 1) {
@@ -140,6 +168,24 @@ fun MeasureSessionScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.lg)
         ) {
+            if (moving && phase == Phase.MEASURING) {
+                Surface(
+                    color = WarningContainer,
+                    contentColor = OnWarningContainer,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(painterResource(R.drawable.ic_phone), contentDescription = null, modifier = Modifier.size(20.dp))
+                        Text(stringResource(R.string.hold_still), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+
             val shown = if (phase == Phase.DONE) average else latest
             LightGauge(lux = shown)
 
@@ -157,9 +203,8 @@ fun MeasureSessionScreen(
                     stringResource(R.string.seconds_left, secondsLeft / 60, secondsLeft % 60),
                     style = MaterialTheme.typography.bodyMedium
                 )
-                // Skipped stays 0 until the accelerometer is added.
                 Text(
-                    stringResource(R.string.samples_kept, readings.size, 0),
+                    stringResource(R.string.samples_kept, readings.size, skipped),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
