@@ -40,6 +40,8 @@
     <string name="samples_kept">%1$d kept · %2$d skipped</string>
     <string name="random_readings">Random readings</string>
     <string name="slider_lux">Slider: %1$d lx</string>
+    <string name="no_light_sensor">No light sensor on this phone, using demo readings</string>
+    <string name="hold_still">Hold still: movement samples are being skipped</string>
     <string name="start_measuring">Start measuring</string>
     <string name="measure_again">Measure again</string>
     <string name="use_reading">Save reading</string>
