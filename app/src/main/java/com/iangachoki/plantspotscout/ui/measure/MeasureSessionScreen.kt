@@ -2,10 +2,13 @@ package com.iangachoki.plantspotscout.ui.measure
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -21,6 +24,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,13 +38,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.iangachoki.plantspotscout.R
 import com.iangachoki.plantspotscout.model.LightBand
 import com.iangachoki.plantspotscout.ui.components.BackTopBar
-import com.iangachoki.plantspotscout.ui.components.LightBandChip
+import com.iangachoki.plantspotscout.ui.theme.Spacing
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -100,6 +104,20 @@ fun MeasureSessionScreen(
                 subtitle = stringResource(R.string.measuring_subtitle),
                 onBack = onCancel
             )
+        },
+        bottomBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = Spacing.screenPadding, vertical = Spacing.sm),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
+                Button(onClick = { average?.let(onUseReading) }, enabled = phase == Phase.DONE) {
+                    Text(stringResource(R.string.use_reading))
+                }
+            }
         }
     ) { innerPadding ->
         Column(
@@ -107,43 +125,47 @@ fun MeasureSessionScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 8.dp),
+                .padding(horizontal = Spacing.screenPadding, vertical = Spacing.sm),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(Spacing.lg)
         ) {
-            if (phase == Phase.READY) {
-                Text(
-                    stringResource(R.string.measure_hint),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-            }
-
             val shown = if (phase == Phase.DONE) average else latest
             LightGauge(lux = shown)
 
-            when (phase) {
-                Phase.READY -> Unit
-                Phase.MEASURING -> {
-                    Text(
-                        stringResource(R.string.seconds_left, secondsLeft),
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                    LinearProgressIndicator(
-                        progress = { 1f - secondsLeft / SESSION_SECONDS.toFloat() },
-                        modifier = Modifier.fillMaxWidth(),
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                }
-                Phase.DONE -> {
-                    Text(
-                        stringResource(R.string.average_reading, SESSION_SECONDS * READINGS_PER_SECOND),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    shown?.let { LightBandChip(LightBand.fromLux(it)) }
-                }
+            shown?.let {
+                Text(LightBand.fromLux(it).label, style = MaterialTheme.typography.headlineMedium)
+                Text(
+                    stringResource(R.string.about_lux, it.toInt()),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    stringResource(R.string.seconds_left, secondsLeft / 60, secondsLeft % 60),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                // Skipped stays 0 until the accelerometer is added.
+                Text(
+                    stringResource(R.string.samples_kept, readings.size, 0),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            LinearProgressIndicator(
+                progress = { 1f - secondsLeft / SESSION_SECONDS.toFloat() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(CircleShape),
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+
+            Text(
+                stringResource(R.string.measure_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             if (phase != Phase.DONE) {
                 DemoReadingsCard(
@@ -154,33 +176,9 @@ fun MeasureSessionScreen(
                 )
             }
 
-            val result = average
-            if (phase == Phase.DONE && result != null) {
-                OutlinedButton(
-                    onClick = { phase = Phase.MEASURING },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                ) {
-                    Text(stringResource(R.string.measure_again))
-                }
-                Button(
-                    onClick = { onUseReading(result) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                ) {
-                    Text(stringResource(R.string.use_reading), style = MaterialTheme.typography.titleMedium)
-                }
-            } else {
-                Button(
-                    onClick = { phase = Phase.MEASURING },
-                    enabled = phase != Phase.MEASURING,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                ) {
-                    Text(stringResource(R.string.start_measuring), style = MaterialTheme.typography.titleMedium)
+            if (phase != Phase.MEASURING) {
+                OutlinedButton(onClick = { phase = Phase.MEASURING }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(if (phase == Phase.DONE) R.string.measure_again else R.string.start_measuring))
                 }
             }
         }
