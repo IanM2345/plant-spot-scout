@@ -1,5 +1,8 @@
 package com.iangachoki.plantspotscout.ui.measure
 
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.iangachoki.plantspotscout.R
@@ -74,8 +78,13 @@ fun MeasureSessionScreen(
     var average by rememberSaveable { mutableStateOf<Float?>(null) }
     val currentSliderLux by rememberUpdatedState(sliderLux)
     val currentUseRandom by rememberUpdatedState(useRandom)
+    val context = LocalContext.current
+    val sensor = remember {
+        (context.getSystemService(Context.SENSOR_SERVICE) as SensorManager).getDefaultSensor(Sensor.TYPE_LIGHT)
+    }
+    LightSensorEffect(sensor, phase == Phase.MEASURING) { readings += it }
 
-    // Runs the countdown and collects one fake reading every half second.
+    // Runs the countdown; without a light sensor it also collects one fake reading every half second.
     LaunchedEffect(phase) {
         if (phase != Phase.MEASURING) return@LaunchedEffect
         readings.clear()
@@ -85,12 +94,14 @@ fun MeasureSessionScreen(
             secondsLeft = second
             repeat(READINGS_PER_SECOND) {
                 delay(1_000L / READINGS_PER_SECOND)
-                val base = if (currentUseRandom) randomBase else currentSliderLux
-                readings += simulatedReading(base)
+                if (sensor == null) {
+                    val base = if (currentUseRandom) randomBase else currentSliderLux
+                    readings += simulatedReading(base)
+                }
             }
         }
         secondsLeft = 0
-        average = readings.average().toFloat()
+        average = readings.average().toFloat().takeUnless { it.isNaN() }
         phase = Phase.DONE
     }
 
@@ -167,7 +178,15 @@ fun MeasureSessionScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            if (phase != Phase.DONE) {
+            if (sensor == null) {
+                Text(
+                    stringResource(R.string.no_light_sensor),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (sensor == null && phase != Phase.DONE) {
                 DemoReadingsCard(
                     useRandom = useRandom,
                     onUseRandomChange = { useRandom = it },
