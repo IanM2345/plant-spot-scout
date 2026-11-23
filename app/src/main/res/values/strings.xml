@@ -34,15 +34,15 @@
     <string name="delete_spot_title">Are you sure?</string>
     <string name="measure">Measure</string>
     <string name="measure_title">Measure %1$s</string>
-    <string name="measure_hint">Hold the phone where the plant would sit.</string>
-    <string name="lux_value">%1$d lx</string>
-    <string name="seconds_left">%1$d s left</string>
-    <string name="average_reading">Average of %1$d readings</string>
+    <string name="measure_hint">Lay the phone face up where the leaves would be. Keep the top edge uncovered.</string>
+    <string name="seconds_left">%1$d:%2$02d left</string>
+    <string name="about_lux">about %1$d lux</string>
+    <string name="samples_kept">%1$d kept · %2$d skipped</string>
     <string name="random_readings">Random readings</string>
     <string name="slider_lux">Slider: %1$d lx</string>
     <string name="start_measuring">Start measuring</string>
     <string name="measure_again">Measure again</string>
-    <string name="use_reading">Use this reading</string>
+    <string name="use_reading">Save reading</string>
     <string name="light_band_updated">Light band set to %1$s</string>
     <string name="no_plants">No plants yet.</string>
     <string name="plant_needs">%1$s · needs %2$s light</string>
@@ -81,6 +81,6 @@
     <string name="slider">Slider</string>
     <string name="my_spots_subtitle">Places around your home and the light they get.</string>
     <string name="my_plants_subtitle">Each plant and how well its spot suits it.</string>
-    <string name="gauge_min">0</string>
-    <string name="gauge_max">20,000 lx</string>
+    <string name="gauge_min">Low</string>
+    <string name="gauge_max">Direct</string>
 </resources>
