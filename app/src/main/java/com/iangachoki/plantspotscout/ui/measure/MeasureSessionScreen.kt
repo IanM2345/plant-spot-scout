@@ -54,6 +54,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.iangachoki.plantspotscout.R
 import com.iangachoki.plantspotscout.model.LightBand
+import com.iangachoki.plantspotscout.model.averageLux
+import com.iangachoki.plantspotscout.model.tooMuchMovement
 import com.iangachoki.plantspotscout.ui.components.BackTopBar
 import com.iangachoki.plantspotscout.ui.theme.OnWarningContainer
 import com.iangachoki.plantspotscout.ui.theme.Spacing
@@ -86,6 +88,7 @@ fun MeasureSessionScreen(
     val readings = remember { mutableStateListOf<Float>() }
     // Saved separately so the final value survives rotation.
     var average by rememberSaveable { mutableStateOf<Float?>(null) }
+    var tooMuchMovement by rememberSaveable { mutableStateOf(false) }
     val currentSliderLux by rememberUpdatedState(sliderLux)
     val currentUseRandom by rememberUpdatedState(useRandom)
     val context = LocalContext.current
@@ -117,6 +120,7 @@ fun MeasureSessionScreen(
         lastMoveMs = 0L
         lastMagnitude = null
         average = null
+        tooMuchMovement = false
         val randomBase = Random.nextFloat() * 15_000f
         for (second in SESSION_SECONDS downTo 1) {
             secondsLeft = second
@@ -129,7 +133,8 @@ fun MeasureSessionScreen(
             }
         }
         secondsLeft = 0
-        average = readings.average().toFloat().takeUnless { it.isNaN() }
+        tooMuchMovement = tooMuchMovement(readings.size, skipped)
+        average = if (tooMuchMovement) null else averageLux(readings)
         phase = Phase.DONE
     }
 
@@ -153,7 +158,7 @@ fun MeasureSessionScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
-                Button(onClick = { average?.let(onUseReading) }, enabled = phase == Phase.DONE) {
+                Button(onClick = { average?.let(onUseReading) }, enabled = phase == Phase.DONE && average != null) {
                     Text(stringResource(R.string.use_reading))
                 }
             }
@@ -184,6 +189,14 @@ fun MeasureSessionScreen(
                         Text(stringResource(R.string.hold_still), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
+            }
+
+            if (tooMuchMovement && phase == Phase.DONE) {
+                Text(
+                    stringResource(R.string.too_much_movement),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
 
             val shown = if (phase == Phase.DONE) average else latest
