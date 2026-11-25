@@ -14,6 +14,10 @@
     <string name="spot_photo_placeholder">Spot photo placeholder</string>
     <string name="light_band">Light: %1$s</string>
     <string name="add_spot">Add spot</string>
+    <string name="all_rooms">All rooms</string>
+    <string name="no_spots_title">No spots yet</string>
+    <string name="no_spots_body">Start with your brightest window. Every other spot is compared to it.</string>
+    <string name="measure_window">Measure a window</string>
     <string name="spot_name">Spot name</string>
     <string name="room">Room</string>
     <string name="add">Add</string>
