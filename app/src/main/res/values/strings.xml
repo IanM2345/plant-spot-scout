@@ -85,4 +85,7 @@
     <string name="my_plants_subtitle">Each plant and how well its spot suits it.</string>
     <string name="gauge_min">Low</string>
     <string name="gauge_max">Direct</string>
+    <string name="house_summary_title">Your home</string>
+    <string name="house_summary_bright">You have room for light-loving plants</string>
+    <string name="house_summary_low">Mostly low light. Shade-tolerant plants will do best</string>
 </resources>

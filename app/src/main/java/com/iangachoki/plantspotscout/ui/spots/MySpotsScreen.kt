@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -39,6 +42,7 @@ import com.iangachoki.plantspotscout.ui.components.EmptyState
 import com.iangachoki.plantspotscout.ui.components.LightBandChip
 import com.iangachoki.plantspotscout.ui.components.LargeTitleTopBar
 import com.iangachoki.plantspotscout.ui.theme.PlantSpotScoutTheme
+import com.iangachoki.plantspotscout.ui.theme.Spacing
 
 @Composable
 fun MySpotsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
@@ -97,9 +101,43 @@ private fun SpotList(
             contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            item { HouseSummary(spots) }
             items(spots, key = { it.id }) { spot ->
                 SpotCard(spot, onClick = { onSpotClick(spot) })
             }
+        }
+    }
+}
+
+/** Spots per band, in band order, skipping bands with none. */
+fun countSpotsByBand(spots: List<Spot>): Map<LightBand, Int> =
+    LightBand.entries.associateWith { band -> spots.count { it.lightBand == band } }.filterValues { it > 0 }
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun HouseSummary(spots: List<Spot>) {
+    val counts = countSpotsByBand(spots)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(modifier = Modifier.padding(Spacing.cardPadding), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.house_summary_title), style = MaterialTheme.typography.titleMedium)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                counts.forEach { (band, n) ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        LightBandChip(band)
+                        Text("$n", style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+            val bright = LightBand.BRIGHT_INDIRECT in counts || LightBand.DIRECT in counts
+            Text(
+                stringResource(if (bright) R.string.house_summary_bright else R.string.house_summary_low),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
