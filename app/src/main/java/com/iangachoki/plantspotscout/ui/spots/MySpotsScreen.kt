@@ -3,6 +3,8 @@ package com.iangachoki.plantspotscout.ui.spots
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -104,6 +106,7 @@ private fun SpotList(
             )
             return@Column
         }
+        HouseSummary(spots)
         val rooms = spots.map { it.room }.distinct()
         var selected by rememberSaveable { mutableStateOf<String?>(null) }
         val room = selected.takeIf { it in rooms } // a room whose last spot is gone falls back to All
@@ -132,6 +135,39 @@ private fun SpotList(
             items(spots.filter { room == null || it.room == room }, key = { it.id }) { spot ->
                 SpotCard(spot, onClick = { onSpotClick(spot) })
             }
+        }
+    }
+}
+
+/** Spots per band, in band order, skipping bands with none. */
+fun countSpotsByBand(spots: List<Spot>): Map<LightBand, Int> =
+    LightBand.entries.associateWith { band -> spots.count { it.lightBand == band } }.filterValues { it > 0 }
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun HouseSummary(spots: List<Spot>) {
+    val counts = countSpotsByBand(spots)
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(Spacing.screenPadding),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(modifier = Modifier.padding(Spacing.cardPadding), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.house_summary_title), style = MaterialTheme.typography.titleMedium)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                counts.forEach { (band, n) ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        LightBandChip(band)
+                        Text("$n", style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+            val bright = LightBand.BRIGHT_INDIRECT in counts || LightBand.DIRECT in counts
+            Text(
+                stringResource(if (bright) R.string.house_summary_bright else R.string.house_summary_low),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
