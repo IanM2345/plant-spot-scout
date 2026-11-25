@@ -85,7 +85,13 @@ fun FitBadge(fit: LightFit, modifier: Modifier = Modifier) {
 
 /** A centred icon and message for an empty list. */
 @Composable
-fun EmptyState(iconRes: Int, message: String, modifier: Modifier = Modifier) {
+fun EmptyState(
+    iconRes: Int,
+    message: String,
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    action: (@Composable () -> Unit)? = null
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -106,12 +112,21 @@ fun EmptyState(iconRes: Int, message: String, modifier: Modifier = Modifier) {
                 tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
+        if (title != null) {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+        }
         Text(
             message,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 16.dp)
+            modifier = Modifier.padding(top = if (title != null) 8.dp else 16.dp)
         )
+        if (action != null) Box(Modifier.padding(top = 24.dp)) { action() }
     }
 }
