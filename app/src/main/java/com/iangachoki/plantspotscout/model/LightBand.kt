@@ -15,6 +15,9 @@ enum class LightBand(val label: String, val minLux: Float) {
     BRIGHT_INDIRECT("Bright indirect", BRIGHT_INDIRECT_MIN_LUX),
     DIRECT("Direct sun", DIRECT_MIN_LUX);
 
+    /** Lux halfway through the band; the top band ends at [MAX_LUX]. */
+    val midLux: Float get() = (minLux + (entries.getOrNull(ordinal + 1)?.minLux ?: MAX_LUX)) / 2
+
     companion object {
         /** Brightest reading the gauge shows. */
         const val MAX_LUX = 20_000f
