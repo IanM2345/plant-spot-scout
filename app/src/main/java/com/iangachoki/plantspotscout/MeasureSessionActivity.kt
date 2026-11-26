@@ -25,6 +25,8 @@ class MeasureSessionActivity : ComponentActivity() {
                 MeasureSessionScreen(
                     spotName = spotName,
                     startWithRandom = PlantRepository.demoMode.value,
+                    demoModeOn = PlantRepository.demoMode.value,
+                    onTurnOnDemo = { PlantRepository.setDemoMode(true) },
                     onCancel = ::finish,
                     onUseReading = { lux ->
                         setResult(RESULT_OK, Intent().putExtra(EXTRA_LUX, lux))

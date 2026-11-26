@@ -6,5 +6,8 @@ const val MIN_KEPT_FRACTION = 0.5f
 /** Mean of the kept samples, or null when there are none. */
 fun averageLux(samples: List<Float>): Float? = if (samples.isEmpty()) null else samples.average().toFloat()
 
+/** The no-light-sensor screen shows only when the phone has no sensor and demo mode is off. */
+fun showNoSensorScreen(hasLightSensor: Boolean, demoModeOn: Boolean): Boolean = !hasLightSensor && !demoModeOn
+
 /** True when too few samples were kept (kept < skipped at the default 0.5). */
 fun tooMuchMovement(kept: Int, skipped: Int): Boolean = kept < MIN_KEPT_FRACTION * (kept + skipped)

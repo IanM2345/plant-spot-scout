@@ -45,6 +45,13 @@
     <string name="random_readings">Random readings</string>
     <string name="slider_lux">Slider: %1$d lx</string>
     <string name="no_light_sensor">No light sensor on this phone, using demo readings</string>
+    <string name="no_sensor_title">This phone has no light sensor</string>
+    <string name="no_sensor_body">Some phones leave it out, so the app can\'t take live readings here. You can still use everything else.</string>
+    <string name="try_demo_title">Try demo mode</string>
+    <string name="try_demo_body">Explore the app with sample spots and readings.</string>
+    <string name="enter_by_hand">Enter light by hand</string>
+    <string name="enter_by_hand_body">Pick a band for each spot and the rankings still work.</string>
+    <string name="turn_on_demo">Turn on demo mode</string>
     <string name="hold_still">Hold still: movement samples are being skipped</string>
     <string name="start_measuring">Start measuring</string>
     <string name="measure_again">Measure again</string>

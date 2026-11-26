@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import com.iangachoki.plantspotscout.R
 import com.iangachoki.plantspotscout.model.LightBand
 import com.iangachoki.plantspotscout.model.averageLux
+import com.iangachoki.plantspotscout.model.showNoSensorScreen
 import com.iangachoki.plantspotscout.model.tooMuchMovement
 import com.iangachoki.plantspotscout.ui.components.BackTopBar
 import com.iangachoki.plantspotscout.ui.theme.OnWarningContainer
@@ -77,6 +78,8 @@ private enum class Phase { READY, MEASURING, DONE }
 fun MeasureSessionScreen(
     spotName: String,
     startWithRandom: Boolean,
+    demoModeOn: Boolean,
+    onTurnOnDemo: () -> Unit,
     onCancel: () -> Unit,
     onUseReading: (lux: Float) -> Unit,
     modifier: Modifier = Modifier
@@ -84,6 +87,7 @@ fun MeasureSessionScreen(
     var phase by rememberSaveable { mutableStateOf(Phase.READY) }
     var secondsLeft by rememberSaveable { mutableIntStateOf(SESSION_SECONDS) }
     var useRandom by rememberSaveable { mutableStateOf(startWithRandom) }
+    var demoOn by rememberSaveable { mutableStateOf(demoModeOn) }
     var sliderLux by rememberSaveable { mutableFloatStateOf(1_000f) }
     val readings = remember { mutableStateListOf<Float>() }
     // Saved separately so the final value survives rotation.
@@ -136,6 +140,22 @@ fun MeasureSessionScreen(
         tooMuchMovement = tooMuchMovement(readings.size, skipped)
         average = if (tooMuchMovement) null else averageLux(readings)
         phase = Phase.DONE
+    }
+
+    if (showNoSensorScreen(sensor != null, demoOn)) {
+        NoLightSensor(
+            spotName = spotName,
+            onCancel = onCancel,
+            onTurnOnDemo = {
+                onTurnOnDemo()
+                demoOn = true
+                useRandom = true
+                phase = Phase.MEASURING
+            },
+            onPickBand = { onUseReading(it.midLux) },
+            modifier = modifier
+        )
+        return
     }
 
     val latest = readings.lastOrNull()

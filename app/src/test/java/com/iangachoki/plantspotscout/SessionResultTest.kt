@@ -1,6 +1,8 @@
 package com.iangachoki.plantspotscout
 
+import com.iangachoki.plantspotscout.model.LightBand
 import com.iangachoki.plantspotscout.model.averageLux
+import com.iangachoki.plantspotscout.model.showNoSensorScreen
 import com.iangachoki.plantspotscout.model.tooMuchMovement
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -24,4 +26,17 @@ class SessionResultTest {
 
     @Test
     fun movement_noSkips_isFine() = assertFalse(tooMuchMovement(kept = 20, skipped = 0))
+
+    @Test
+    fun noSensorScreen_showsOnlyWithoutSensorAndWithoutDemo() {
+        assertTrue(showNoSensorScreen(hasLightSensor = false, demoModeOn = false))
+        assertFalse(showNoSensorScreen(hasLightSensor = false, demoModeOn = true))
+        assertFalse(showNoSensorScreen(hasLightSensor = true, demoModeOn = false))
+        assertFalse(showNoSensorScreen(hasLightSensor = true, demoModeOn = true))
+    }
+
+    @Test
+    fun bandMidpoint_staysInItsBand() {
+        LightBand.entries.forEach { assertEquals(it, LightBand.fromLux(it.midLux)) }
+    }
 }

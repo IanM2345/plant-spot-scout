@@ -46,7 +46,7 @@ object PlantRepository {
     )
     val plants: StateFlow<List<Plant>> = _plants.asStateFlow()
 
-    private val _demoMode = MutableStateFlow(true)
+    private val _demoMode = MutableStateFlow(false)
 
     /** When on, Measure Session starts with simulated readings instead of the slider. */
     val demoMode: StateFlow<Boolean> = _demoMode.asStateFlow()
