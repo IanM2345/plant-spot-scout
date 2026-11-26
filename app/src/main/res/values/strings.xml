@@ -57,6 +57,11 @@
     <string name="where_should_this_go">Where should this go?</string>
     <string name="ranking_title">Best spots for %1$s</string>
     <string name="ranking_subtitle">Needs %1$s light. Best match first.</string>
+    <string name="spot_current">%1$s (current)</string>
+    <string name="reason_best">Best match</string>
+    <string name="reason_dim">A bit dim, growth will slow</string>
+    <string name="reason_dark">Too dark for a %1$s</string>
+    <string name="reason_bright">Bright, but direct sun may scorch leaves</string>
     <string name="no_spots_to_rank">Add a spot first.</string>
     <string name="close">Close</string>
     <string name="settings_measuring">Measuring</string>

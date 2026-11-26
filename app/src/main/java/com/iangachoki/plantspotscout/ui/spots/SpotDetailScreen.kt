@@ -53,10 +53,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.iangachoki.plantspotscout.R
 import com.iangachoki.plantspotscout.model.LightFit
+import com.iangachoki.plantspotscout.model.bandDistance
 import com.iangachoki.plantspotscout.model.PlantType
 import com.iangachoki.plantspotscout.model.Spot
 import com.iangachoki.plantspotscout.ui.SpotsViewModel
-import kotlin.math.abs
 
 @Composable
 fun SpotDetailScreen(
@@ -209,7 +209,7 @@ private fun SpotDetails(
         // Closest band first: distance 0 is exactly the GOOD fits, then the nearest misses.
         val best = plantTypes
             .map { it to LightFit.of(it.lightNeeds, spot.lightBand) }
-            .sortedBy { abs(it.first.lightNeeds.ordinal - spot.lightBand.ordinal) }
+            .sortedBy { bandDistance(it.first.lightNeeds, spot.lightBand) }
             .take(3)
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
