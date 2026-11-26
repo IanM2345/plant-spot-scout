@@ -48,6 +48,7 @@
     <string name="hold_still">Hold still: movement samples are being skipped</string>
     <string name="start_measuring">Start measuring</string>
     <string name="measure_again">Measure again</string>
+    <string name="too_much_movement">Too much movement. Hold the phone still and try again</string>
     <string name="use_reading">Save reading</string>
     <string name="light_band_updated">Light band set to %1$s</string>
     <string name="no_plants">No plants yet.</string>
