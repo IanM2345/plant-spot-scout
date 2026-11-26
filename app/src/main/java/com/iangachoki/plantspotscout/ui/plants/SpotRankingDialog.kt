@@ -29,6 +29,7 @@ import com.iangachoki.plantspotscout.R
 import com.iangachoki.plantspotscout.model.LightFit
 import com.iangachoki.plantspotscout.model.Plant
 import com.iangachoki.plantspotscout.model.Spot
+import com.iangachoki.plantspotscout.model.spotReason
 
 /**
  * Lists every spot for [plant], best match first.
@@ -104,7 +105,15 @@ private fun RankedSpotRow(position: Int, spot: Spot, plant: Plant) {
                     .padding(horizontal = 12.dp)
                     .weight(1f)
             ) {
-                Text(spot.name, style = MaterialTheme.typography.titleSmall)
+                val name = if (spot.id == plant.currentSpotId) {
+                    stringResource(R.string.spot_current, spot.name)
+                } else spot.name
+                Text(name, style = MaterialTheme.typography.titleSmall)
+                Text(
+                    stringResource(spotReason(plant.type.lightNeeds, spot.lightBand), plant.type.name),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Text(
                     "${spot.room} · ${spot.lightBand.label}",
                     style = MaterialTheme.typography.bodySmall,
