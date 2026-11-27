@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Full-size photos taken for plant identification; deleted after the upload. -->
+    <cache-path name="identify" path="identify/" />
+</paths>

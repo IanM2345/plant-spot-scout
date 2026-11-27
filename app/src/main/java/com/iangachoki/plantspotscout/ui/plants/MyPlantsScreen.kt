@@ -49,6 +49,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import com.iangachoki.plantspotscout.BuildConfig
 import com.iangachoki.plantspotscout.R
 import com.iangachoki.plantspotscout.data.identifyPlant
@@ -65,6 +66,7 @@ import com.iangachoki.plantspotscout.ui.components.LargeTitleTopBar
 import com.iangachoki.plantspotscout.ui.components.TopBarIconButton
 import com.iangachoki.plantspotscout.ui.theme.PlantSpotScoutTheme
 import kotlinx.coroutines.launch
+import java.io.File
 
 @Composable
 fun MyPlantsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
@@ -77,14 +79,16 @@ fun MyPlantsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
     var matches by remember { mutableStateOf<List<PlantMatch>?>(null) }
     var identifiedType by remember { mutableStateOf<PlantType?>(null) }
     val scope = rememberCoroutineScope()
-    // Same contract as Spot detail: the camera app hands back a small preview bitmap.
-    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
-        if (bitmap != null) scope.launch {
+    // Full-size photo in a cache file (unlike Spot detail's thumbnail); identifyPlant deletes it.
+    var photoFile by remember { mutableStateOf<File?>(null) }
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { taken ->
+        val file = photoFile
+        if (taken && file != null) scope.launch {
             identifying = true
-            val found = identifyPlant(bitmap)
+            val found = identifyPlant(file)
             identifying = false
             if (found == null) Toast.makeText(context, R.string.identify_failed, Toast.LENGTH_SHORT).show() else matches = found
-        }
+        } else file?.delete()
     }
 
     PlantList(
@@ -111,10 +115,15 @@ fun MyPlantsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
         onIdentify = {
             if (BuildConfig.PLANTNET_API_KEY.isBlank()) {
                 Toast.makeText(context, R.string.identify_not_set_up, Toast.LENGTH_SHORT).show()
-            } else try {
-                camera.launch(null)
-            } catch (e: ActivityNotFoundException) {
-                Toast.makeText(context, R.string.no_camera_app, Toast.LENGTH_SHORT).show()
+            } else {
+                val file = File.createTempFile("plant", ".jpg", File(context.cacheDir, "identify").apply { mkdirs() })
+                photoFile = file
+                try {
+                    camera.launch(FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file))
+                } catch (e: ActivityNotFoundException) {
+                    file.delete()
+                    Toast.makeText(context, R.string.no_camera_app, Toast.LENGTH_SHORT).show()
+                }
             }
         },
         modifier = modifier

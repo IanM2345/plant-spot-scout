@@ -16,7 +16,7 @@ object PlantRepository {
 
     val rooms = listOf("Living room", "Bedroom", "Kitchen", "Bathroom", "Balcony", "Office")
 
-    private val snakePlant = PlantType("Snake plant", LightBand.LOW, "Sansevieria trifasciata")
+    private val snakePlant = PlantType("Snake plant", LightBand.LOW, "Dracaena trifasciata")
     private val pothos = PlantType("Pothos", LightBand.MEDIUM, "Epipremnum aureum")
     private val monstera = PlantType("Monstera", LightBand.BRIGHT_INDIRECT, "Monstera deliciosa")
     private val aloe = PlantType("Aloe vera", LightBand.DIRECT, "Aloe vera")

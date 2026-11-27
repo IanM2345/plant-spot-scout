@@ -19,8 +19,12 @@ fun parseTopResults(json: String): List<PlantMatch> {
     }
 }
 
+// Sansevieria was folded into Dracaena, and Pl@ntNet may return either name.
+private fun genus(scientificName: String) =
+    scientificName.substringBefore(' ').lowercase().let { if (it == "sansevieria") "dracaena" else it }
+
 /** The type with the same genus (first word of the scientific name) as [match], if we have one. */
 fun matchingType(types: List<PlantType>, match: PlantMatch): PlantType? {
-    val genus = match.scientificName.substringBefore(' ')
-    return types.firstOrNull { it.scientificName.isNotBlank() && it.scientificName.substringBefore(' ').equals(genus, ignoreCase = true) }
+    val target = genus(match.scientificName)
+    return types.firstOrNull { it.scientificName.isNotBlank() && genus(it.scientificName) == target }
 }
