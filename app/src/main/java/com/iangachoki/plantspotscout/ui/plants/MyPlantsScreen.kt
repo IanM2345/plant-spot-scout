@@ -53,10 +53,10 @@ import androidx.core.content.FileProvider
 import com.iangachoki.plantspotscout.BuildConfig
 import com.iangachoki.plantspotscout.R
 import com.iangachoki.plantspotscout.data.identifyPlant
+import com.iangachoki.plantspotscout.model.Identification
 import com.iangachoki.plantspotscout.model.LightBand
 import com.iangachoki.plantspotscout.model.LightFit
 import com.iangachoki.plantspotscout.model.Plant
-import com.iangachoki.plantspotscout.model.PlantMatch
 import com.iangachoki.plantspotscout.model.PlantType
 import com.iangachoki.plantspotscout.model.Spot
 import com.iangachoki.plantspotscout.ui.SpotsViewModel
@@ -76,7 +76,8 @@ fun MyPlantsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
     var rankingFor by rememberSaveable { mutableStateOf<Long?>(null) }
     val context = LocalContext.current
     var identifying by remember { mutableStateOf(false) }
-    var matches by remember { mutableStateOf<List<PlantMatch>?>(null) }
+    var outcome by remember { mutableStateOf<Identification?>(null) }
+    var picking by remember { mutableStateOf(false) }
     var identifiedType by remember { mutableStateOf<PlantType?>(null) }
     val scope = rememberCoroutineScope()
     // Full-size photo in a cache file (unlike Spot detail's thumbnail); identifyPlant deletes it.
@@ -85,10 +86,24 @@ fun MyPlantsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
         val file = photoFile
         if (taken && file != null) scope.launch {
             identifying = true
-            val found = identifyPlant(file)
+            outcome = identifyPlant(file)
             identifying = false
-            if (found == null) Toast.makeText(context, R.string.identify_failed, Toast.LENGTH_SHORT).show() else matches = found
         } else file?.delete()
+    }
+
+    val takePhoto: () -> Unit = {
+        if (BuildConfig.PLANTNET_API_KEY.isBlank()) {
+            Toast.makeText(context, R.string.identify_not_set_up, Toast.LENGTH_SHORT).show()
+        } else {
+            val file = File.createTempFile("plant", ".jpg", File(context.cacheDir, "identify").apply { mkdirs() })
+            photoFile = file
+            try {
+                camera.launch(FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file))
+            } catch (e: ActivityNotFoundException) {
+                file.delete()
+                Toast.makeText(context, R.string.no_camera_app, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     PlantList(
@@ -112,30 +127,31 @@ fun MyPlantsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
             }
             context.startActivity(Intent.createChooser(send, context.getString(R.string.share_plant)))
         },
-        onIdentify = {
-            if (BuildConfig.PLANTNET_API_KEY.isBlank()) {
-                Toast.makeText(context, R.string.identify_not_set_up, Toast.LENGTH_SHORT).show()
-            } else {
-                val file = File.createTempFile("plant", ".jpg", File(context.cacheDir, "identify").apply { mkdirs() })
-                photoFile = file
-                try {
-                    camera.launch(FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file))
-                } catch (e: ActivityNotFoundException) {
-                    file.delete()
-                    Toast.makeText(context, R.string.no_camera_app, Toast.LENGTH_SHORT).show()
-                }
-            }
-        },
+        onIdentify = takePhoto,
         modifier = modifier
     )
 
     if (identifying) IdentifyingDialog()
-    matches?.let { found ->
-        IdentifyResultsDialog(
-            matches = found,
+    when (val result = outcome) {
+        is Identification.Found -> IdentifyResultsDialog(
+            matches = result.matches,
             types = viewModel.plantTypes,
-            onPickType = { identifiedType = it; matches = null },
-            onClose = { matches = null }
+            onPickType = { identifiedType = it; outcome = null },
+            onClose = { outcome = null }
+        )
+        is Identification.Failed -> IdentifyFailedDialog(
+            error = result.error,
+            onTryAgain = { outcome = null; takePhoto() },
+            onPickFromList = { outcome = null; picking = true },
+            onClose = { outcome = null }
+        )
+        null -> {}
+    }
+    if (picking) {
+        PlantTypePickerDialog(
+            types = viewModel.plantTypes,
+            onPick = { identifiedType = it; picking = false },
+            onClose = { picking = false }
         )
     }
     identifiedType?.let { type ->

@@ -84,7 +84,14 @@
     <string name="identify_plant">Identify a plant</string>
     <string name="identify_not_set_up">Plant identification is not set up</string>
     <string name="identifying">Identifying…</string>
-    <string name="identify_failed">Couldn\'t identify the plant</string>
+    <string name="identify_failed">Couldn\'t identify the plant. Try again.</string>
+    <string name="error_offline">You\'re offline. Connect to the internet and try again.</string>
+    <string name="error_not_found">No plant found. Try a closer photo of one leaf or flower.</string>
+    <string name="error_bad_key">Plant identification is not set up correctly.</string>
+    <string name="error_limit">Daily identification limit reached. Try again tomorrow.</string>
+    <string name="not_sure_note">Not sure about this one. A closer photo may help.</string>
+    <string name="try_again">Try again</string>
+    <string name="pick_from_list">Pick from list</string>
     <string name="in_your_plant_list">In your plant list</string>
     <string name="score_percent">%1$d%%</string>
     <string name="identified_by">Identified by Pl@ntNet</string>

@@ -5,7 +5,9 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.ExifInterface
 import com.iangachoki.plantspotscout.BuildConfig
-import com.iangachoki.plantspotscout.model.PlantMatch
+import com.iangachoki.plantspotscout.model.Identification
+import com.iangachoki.plantspotscout.model.IdentifyError
+import com.iangachoki.plantspotscout.model.errorForStatus
 import com.iangachoki.plantspotscout.model.parseTopResults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -28,11 +30,16 @@ private const val MAX_SIDE = 1000
 
 private val http = OkHttpClient.Builder().callTimeout(20, TimeUnit.SECONDS).build()
 
-/** Sends the photo file to Pl@ntNet and deletes it. Returns null on any failure; detailed errors come later. */
-suspend fun identifyPlant(photo: File): List<PlantMatch>? = withContext(Dispatchers.IO) {
+/** Sends the photo file to Pl@ntNet and deletes it. Network, HTTP, JSON and photo problems come back as [Identification.Failed]. */
+suspend fun identifyPlant(photo: File): Identification = withContext(Dispatchers.IO) {
     try {
+        val jpeg = try {
+            jpegBytes(photo)
+        } catch (e: IOException) {
+            return@withContext Identification.Failed(IdentifyError.OTHER) // unreadable photo, not a network problem
+        }
         val body = MultipartBody.Builder().setType(MultipartBody.FORM)
-            .addFormDataPart("images", "plant.jpg", jpegBytes(photo).toRequestBody("image/jpeg".toMediaType()))
+            .addFormDataPart("images", "plant.jpg", jpeg.toRequestBody("image/jpeg".toMediaType()))
             .addFormDataPart("organs", "auto")
             .build()
         val url = "https://my-api.plantnet.org/v2/identify/all".toHttpUrl().newBuilder()
@@ -40,12 +47,19 @@ suspend fun identifyPlant(photo: File): List<PlantMatch>? = withContext(Dispatch
             .addQueryParameter("lang", "en")
             .build()
         http.newCall(Request.Builder().url(url).post(body).build()).execute().use { response ->
-            if (response.isSuccessful) response.body?.string()?.let(::parseTopResults) else null
+            if (!response.isSuccessful) {
+                Identification.Failed(errorForStatus(response.code))
+            } else {
+                // A 200 with no results means the same as a 404: nothing found.
+                parseTopResults(response.body?.string().orEmpty()).let {
+                    if (it.isEmpty()) Identification.Failed(IdentifyError.NOT_FOUND) else Identification.Found(it)
+                }
+            }
         }
     } catch (e: IOException) {
-        null
+        Identification.Failed(IdentifyError.OFFLINE) // no connection, DNS failure or the 20 s timeout
     } catch (e: JSONException) {
-        null
+        Identification.Failed(IdentifyError.OTHER)
     } finally {
         photo.delete()
     }
