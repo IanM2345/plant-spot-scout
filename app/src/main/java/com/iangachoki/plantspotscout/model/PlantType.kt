@@ -7,7 +7,8 @@ import java.net.URLEncoder
  */
 data class PlantType(
     val name: String,
-    val lightNeeds: LightBand
+    val lightNeeds: LightBand,
+    val scientificName: String = ""
 ) {
     /** A web search for care tips. Good enough until each type has its own curated page. */
     val careUrl: String

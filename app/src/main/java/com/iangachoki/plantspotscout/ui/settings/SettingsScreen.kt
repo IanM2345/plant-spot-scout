@@ -96,6 +96,7 @@ fun SettingsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
                     Column {
                         Text(stringResource(R.string.version, versionName))
                         Text(stringResource(R.string.about_text), modifier = Modifier.padding(top = 4.dp))
+                        Text(stringResource(R.string.about_plantnet), modifier = Modifier.padding(top = 4.dp))
                     }
                 }
             )

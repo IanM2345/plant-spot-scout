@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +37,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -45,17 +49,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.iangachoki.plantspotscout.BuildConfig
 import com.iangachoki.plantspotscout.R
+import com.iangachoki.plantspotscout.data.identifyPlant
 import com.iangachoki.plantspotscout.model.LightBand
 import com.iangachoki.plantspotscout.model.LightFit
 import com.iangachoki.plantspotscout.model.Plant
+import com.iangachoki.plantspotscout.model.PlantMatch
 import com.iangachoki.plantspotscout.model.PlantType
 import com.iangachoki.plantspotscout.model.Spot
 import com.iangachoki.plantspotscout.ui.SpotsViewModel
 import com.iangachoki.plantspotscout.ui.components.EmptyState
 import com.iangachoki.plantspotscout.ui.components.FitBadge
 import com.iangachoki.plantspotscout.ui.components.LargeTitleTopBar
+import com.iangachoki.plantspotscout.ui.components.TopBarIconButton
 import com.iangachoki.plantspotscout.ui.theme.PlantSpotScoutTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun MyPlantsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
@@ -64,6 +73,19 @@ fun MyPlantsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
 
     var rankingFor by rememberSaveable { mutableStateOf<Long?>(null) }
     val context = LocalContext.current
+    var identifying by remember { mutableStateOf(false) }
+    var matches by remember { mutableStateOf<List<PlantMatch>?>(null) }
+    var identifiedType by remember { mutableStateOf<PlantType?>(null) }
+    val scope = rememberCoroutineScope()
+    // Same contract as Spot detail: the camera app hands back a small preview bitmap.
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
+        if (bitmap != null) scope.launch {
+            identifying = true
+            val found = identifyPlant(bitmap)
+            identifying = false
+            if (found == null) Toast.makeText(context, R.string.identify_failed, Toast.LENGTH_SHORT).show() else matches = found
+        }
+    }
 
     PlantList(
         plants = plants,
@@ -86,8 +108,31 @@ fun MyPlantsScreen(viewModel: SpotsViewModel, modifier: Modifier = Modifier) {
             }
             context.startActivity(Intent.createChooser(send, context.getString(R.string.share_plant)))
         },
+        onIdentify = {
+            if (BuildConfig.PLANTNET_API_KEY.isBlank()) {
+                Toast.makeText(context, R.string.identify_not_set_up, Toast.LENGTH_SHORT).show()
+            } else try {
+                camera.launch(null)
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(context, R.string.no_camera_app, Toast.LENGTH_SHORT).show()
+            }
+        },
         modifier = modifier
     )
+
+    if (identifying) IdentifyingDialog()
+    matches?.let { found ->
+        IdentifyResultsDialog(
+            matches = found,
+            types = viewModel.plantTypes,
+            onPickType = { identifiedType = it; matches = null },
+            onClose = { matches = null }
+        )
+    }
+    identifiedType?.let { type ->
+        val stand = Plant(0, type.name, type)
+        SpotRankingDialog(stand, viewModel.rankSpotsFor(stand), onDismiss = { identifiedType = null })
+    }
 
     val plant = plants.firstOrNull { it.id == rankingFor }
     if (plant != null) {
@@ -106,12 +151,16 @@ private fun PlantList(
     onWhereShouldThisGo: (Plant) -> Unit,
     onOpenCarePage: (Plant) -> Unit,
     onShare: (Plant) -> Unit,
+    onIdentify: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         LargeTitleTopBar(
             title = stringResource(R.string.tab_my_plants),
-            subtitle = stringResource(R.string.my_plants_subtitle)
+            subtitle = stringResource(R.string.my_plants_subtitle),
+            actions = {
+                TopBarIconButton(R.drawable.ic_camera, stringResource(R.string.identify_plant), onClick = onIdentify)
+            }
         )
         if (plants.isEmpty()) {
             EmptyState(R.drawable.ic_plant, stringResource(R.string.no_plants))
@@ -258,7 +307,8 @@ private fun PlantListPreview() {
             spots = listOf(spot),
             onWhereShouldThisGo = {},
             onOpenCarePage = {},
-            onShare = {}
+            onShare = {},
+            onIdentify = {}
         )
     }
 }

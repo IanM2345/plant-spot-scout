@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Photos come from the camera app, so a camera is nice to have but not required. -->
     <uses-feature
         android:name="android.hardware.camera"
